@@ -4,9 +4,17 @@
 <meta charset="UTF-8">
 <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="KitchenLogic OS">
+  <meta name="apple-mobile-web-app-title" content="KitchenLogic">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0a0a0a">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="description" content="Restaurant ops system — recipes, prep, line checks, schedule, costing">
+  <!-- PWA manifest (inline data URI so single-file deploy works) -->
+  <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIktpdGNoZW5Mb2dpYyBPUyIsICJzaG9ydF9uYW1lIjogIktpdGNoZW5Mb2dpYyIsICJkZXNjcmlwdGlvbiI6ICJSZXN0YXVyYW50IG9wcyBzeXN0ZW0gXHUyMDE0IHJlY2lwZXMsIHByZXAsIGxpbmUgY2hlY2tzLCBzY2hlZHVsZSwgY29zdGluZyIsICJzdGFydF91cmwiOiAiLi8iLCAic2NvcGUiOiAiLi8iLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgIm9yaWVudGF0aW9uIjogImFueSIsICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwYTBhMGEiLCAidGhlbWVfY29sb3IiOiAiIzBhMGEwYSIsICJjYXRlZ29yaWVzIjogWyJidXNpbmVzcyIsICJwcm9kdWN0aXZpdHkiLCAiZm9vZCJdLCAiaWNvbnMiOiBbeyJzcmMiOiAiaWNvbi0xOTIucG5nIiwgInNpemVzIjogIjE5MngxOTIiLCAidHlwZSI6ICJpbWFnZS9wbmciLCAicHVycG9zZSI6ICJhbnkgbWFza2FibGUifSwgeyJzcmMiOiAiaWNvbi01MTIucG5nIiwgInNpemVzIjogIjUxMng1MTIiLCAidHlwZSI6ICJpbWFnZS9wbmciLCAicHVycG9zZSI6ICJhbnkgbWFza2FibGUifV19">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSI5NiIgZmlsbD0iIzBhMGEwYSIvPgo8dGV4dCB4PSIyNTYiIHk9IjIwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IidCZWJhcyBOZXVlJyxJbXBhY3Qsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMjAiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNmMGVkZTgiIGxldHRlci1zcGFjaW5nPSItMiI+S0lUQ0hFTjwvdGV4dD4KPHRleHQgeD0iMjU2IiB5PSIzMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSInQmViYXMgTmV1ZScsSW1wYWN0LHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjY2M0NDAwIiBsZXR0ZXItc3BhY2luZz0iLTIiPkxPR0lDPC90ZXh0Pgo8dGV4dCB4PSIyNTYiIHk9IjQyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IidCZWJhcyBOZXVlJyxJbXBhY3Qsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI2OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2YwZWRlOCIgbGV0dGVyLXNwYWNpbmc9IjIiPk9TPC90ZXh0Pgo8L3N2Zz4=">
+  <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSI5NiIgZmlsbD0iIzBhMGEwYSIvPgo8dGV4dCB4PSIyNTYiIHk9IjIwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IidCZWJhcyBOZXVlJyxJbXBhY3Qsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMjAiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNmMGVkZTgiIGxldHRlci1zcGFjaW5nPSItMiI+S0lUQ0hFTjwvdGV4dD4KPHRleHQgeD0iMjU2IiB5PSIzMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSInQmViYXMgTmV1ZScsSW1wYWN0LHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjY2M0NDAwIiBsZXR0ZXItc3BhY2luZz0iLTIiPkxPR0lDPC90ZXh0Pgo8dGV4dCB4PSIyNTYiIHk9IjQyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IidCZWJhcyBOZXVlJyxJbXBhY3Qsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI2OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2YwZWRlOCIgbGV0dGVyLXNwYWNpbmc9IjIiPk9TPC90ZXh0Pgo8L3N2Zz4=">
+  <link rel="shortcut icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSI5NiIgZmlsbD0iIzBhMGEwYSIvPgo8dGV4dCB4PSIyNTYiIHk9IjIwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IidCZWJhcyBOZXVlJyxJbXBhY3Qsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMjAiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNmMGVkZTgiIGxldHRlci1zcGFjaW5nPSItMiI+S0lUQ0hFTjwvdGV4dD4KPHRleHQgeD0iMjU2IiB5PSIzMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSInQmViYXMgTmV1ZScsSW1wYWN0LHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjY2M0NDAwIiBsZXR0ZXItc3BhY2luZz0iLTIiPkxPR0lDPC90ZXh0Pgo8dGV4dCB4PSIyNTYiIHk9IjQyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IidCZWJhcyBOZXVlJyxJbXBhY3Qsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI2OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2YwZWRlOCIgbGV0dGVyLXNwYWNpbmc9IjIiPk9TPC90ZXh0Pgo8L3N2Zz4=">
 <meta name="kl-build-id" content="build-20260502-025334">
   <title>KitchenLogic OS</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -829,13 +837,57 @@ a,button,.btn,.ni,.nb-divider-clickable,.imp-btn,.rab,.setup-opt,.binder-card{cu
 </div>
 <div id="sb"></div>
 <div id="main"></div>
-<div data-build-id="build-042301" style="position:fixed;bottom:6px;left:6px;font-family:monospace;font-size:9px;color:rgba(255,255,255,.25);pointer-events:none;z-index:99">build-042301</div>
+<div data-build-id="build-070515" style="position:fixed;bottom:6px;left:6px;font-family:monospace;font-size:9px;color:rgba(255,255,255,.25);pointer-events:none;z-index:99">build-070515</div>
 <div id="kl-print-doc"></div>
 
 
 <script>
 if ('serviceWorker' in navigator) {
-  var _swCode = 'self.addEventListener("install",function(e){e.waitUntil(caches.open("kl-v1").then(function(c){return c.addAll([])}))});self.addEventListener("fetch",function(e){e.respondWith(caches.match(e.request).then(function(r){return r||fetch(e.request)}))});';
+  // Phase 14d: real PWA service worker
+  // Cache-first for HTML/static assets; network-first with cache fallback for everything else
+  // Cache name versioned by build ID so updates clear old cache automatically
+  var _klCacheName = 'kl-cache-v' + (document.querySelector('[data-build-id]') || {}).getAttribute && (document.querySelector('[data-build-id]')||{}).getAttribute('data-build-id') || 'v1';
+  var _swCode = [
+    'var CACHE = "' + _klCacheName + '";',
+    'self.addEventListener("install",function(e){',
+    '  e.waitUntil(caches.open(CACHE).then(function(c){',
+    '    return c.add(self.location.pathname.replace(/sw.*/,"")).catch(function(){});',
+    '  }));',
+    '  self.skipWaiting();',
+    '});',
+    'self.addEventListener("activate",function(e){',
+    '  e.waitUntil(caches.keys().then(function(keys){',
+    '    return Promise.all(keys.filter(function(k){return k!==CACHE}).map(function(k){return caches.delete(k)}));',
+    '  }));',
+    '  self.clients.claim();',
+    '});',
+    'self.addEventListener("fetch",function(e){',
+    '  if (e.request.method !== "GET") return;',
+    '  // Network-first for navigation requests so updates show fast',
+    '  if (e.request.mode === "navigate") {',
+    '    e.respondWith(fetch(e.request).then(function(r){',
+    '      var clone = r.clone();',
+    '      caches.open(CACHE).then(function(c){c.put(e.request, clone)});',
+    '      return r;',
+    '    }).catch(function(){',
+    '      return caches.match(e.request).then(function(r){',
+    '        return r || caches.match("./") || caches.match("./index.html");',
+    '      });',
+    '    }));',
+    '    return;',
+    '  }',
+    '  // Cache-first for everything else (fonts, images, etc.)',
+    '  e.respondWith(caches.match(e.request).then(function(r){',
+    '    return r || fetch(e.request).then(function(resp){',
+    '      if (resp && resp.status === 200 && resp.type === "basic") {',
+    '        var clone = resp.clone();',
+    '        caches.open(CACHE).then(function(c){c.put(e.request, clone)});',
+    '      }',
+    '      return resp;',
+    '    });',
+    '  }));',
+    '});',
+  ].join('\n');
   navigator.serviceWorker.register(URL.createObjectURL(new Blob([_swCode],{type:'application/javascript'}))).catch(function(){});
 }
 var _klInstallEvt = null;
@@ -6670,6 +6722,12 @@ function showAddEmployeeModal(empId) {
         + '<input id="emp-pin" class="form-input" type="text" maxlength="4" pattern="[0-9]{4}" placeholder="1234" value="' + (emp ? (emp.pin||'') : '') + '">'
       + '</div>'
     + '</div>'
+    + '<div class="form-group" style="margin-bottom:10px">'
+      + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text2)">'
+        + '<input type="checkbox" id="emp-manager"' + ((emp && emp.is_manager) ? ' checked' : '') + ' style="width:18px;height:18px;cursor:pointer">'
+        + '<span>Manager <span style="font-size:11px;color:var(--text3)">— can edit other employees’ time entries</span></span>'
+      + '</label>'
+    + '</div>'
     + '<div class="form-group">'
       + '<label class="form-label">Color</label>'
       + '<div style="display:flex;gap:6px;align-items:center">' + colorPicker + '</div>'
@@ -6699,11 +6757,12 @@ function commitEmployee(empId) {
     if (conflict) { showToast('PIN already used by ' + conflict.name,'error'); return; }
   }
   if (!DB.employees) DB.employees = [];
+  var isManager = !!(document.getElementById('emp-manager') && document.getElementById('emp-manager').checked);
   if (empId) {
     var emp = getEmployeeById(empId);
-    if (emp) { emp.name=name; emp.role=role; emp.rate=rate; emp.pin=pin||emp.pin; emp.color=color; }
+    if (emp) { emp.name=name; emp.role=role; emp.rate=rate; emp.pin=pin||emp.pin; emp.color=color; emp.is_manager=isManager; }
   } else {
-    DB.employees.push({ id:'emp-'+Date.now(), name:name, role:role, rate:rate, pin:pin, color:color, active:true });
+    DB.employees.push({ id:'emp-'+Date.now(), name:name, role:role, rate:rate, pin:pin, color:color, is_manager:isManager, active:true });
   }
   saveEmployees();
   var modal = document.getElementById('_emp_modal'); if (modal) modal.remove();
@@ -6723,6 +6782,101 @@ function removeEmployee(empId) {
 }
 
 // ─── SHIFT MODAL ─────────────────────────────────────────────
+
+
+
+/**
+ * fmtTime12(hhmm)
+ * Convert "14:30" to "2:30 PM". Returns the input unchanged if already 12-hour.
+ */
+function fmtTime12(hhmm) {
+  if (!hhmm || typeof hhmm !== 'string') return hhmm || '';
+  var parts = hhmm.split(':');
+  var h = parseInt(parts[0], 10);
+  var m = parts[1] || '00';
+  if (isNaN(h)) return hhmm;
+  var period = h >= 12 ? 'PM' : 'AM';
+  var displayH = h % 12;
+  if (displayH === 0) displayH = 12;
+  return displayH + ':' + m + ' ' + period;
+}
+
+/**
+ * getDayBudgetRemaining(weekStart, date, sectionId, excludeShiftId)
+ * For the shift modal — shows operator how much $ + hours are left in budget
+ * after considering all OTHER shifts (excluding the one being edited).
+ */
+function getDayBudgetRemaining(weekStart, date, sectionId, excludeShiftId) {
+  if (typeof computeDayBudget !== 'function') return null;
+  var b = computeDayBudget(date, sectionId);
+  if (!b || b.budget_dollars == null) return null;
+  // If editing existing, subtract its current cost from "scheduled" so we see remaining BEFORE this edit
+  var allShifts = ((DB.schedule || {})[weekStart] || []).filter(function(s){
+    return s.date === date && getShiftSection(s) === sectionId;
+  });
+  var otherCost = 0, otherHours = 0;
+  allShifts.forEach(function(s) {
+    if (excludeShiftId && s.shift_id === excludeShiftId) return;
+    otherCost  += computeShiftCost(s);
+    otherHours += computeShiftHours(s);
+  });
+  return {
+    budget_dollars: b.budget_dollars,
+    budget_hours:   b.budget_hours,
+    other_dollars:  Math.round(otherCost * 100) / 100,
+    other_hours:    Math.round(otherHours * 100) / 100,
+    dollars_left:   Math.round((b.budget_dollars - otherCost) * 100) / 100,
+    hours_left:     Math.round((b.budget_hours - otherHours) * 10) / 10,
+    target_pct:     b.target_pct,
+  };
+}
+
+
+
+/**
+ * _updateShiftBudgetHint()
+ * Re-renders the budget hint as operator types start/end times.
+ * Recomputes "if you pick these times, your shift will cost $X" alongside
+ * the static "$Y left in budget".
+ */
+function _updateShiftBudgetHint() {
+  var hint = document.getElementById('shift-budget-hint');
+  if (!hint) return;
+  var startEl = document.getElementById('shift-start');
+  var endEl   = document.getElementById('shift-end');
+  var empEl   = document.getElementById('shift-emp');
+  if (!startEl || !endEl) return;
+  var start = startEl.value, end = endEl.value;
+  if (!start || !end) return; // leave hint as-is until both set
+
+  // Compute hours from start/end
+  var sParts = start.split(':').map(Number);
+  var eParts = end.split(':').map(Number);
+  var hours = ((eParts[0]*60 + (eParts[1]||0)) - (sParts[0]*60 + (sParts[1]||0))) / 60;
+  if (hours < 0) hours += 24;
+  hours = Math.round(hours * 10) / 10;
+
+  // Get rate from picked employee or default
+  var emp = empEl && empEl.value ? getEmployeeById(empEl.value) : null;
+  var rate = emp && parseFloat(emp.rate) > 0 ? parseFloat(emp.rate) : 15;
+  var thisShiftCost = Math.round(hours * rate * 100) / 100;
+
+  // Find the static hint's existing "$X left in budget" so we can prepend "this shift = $Y / Zhrs"
+  var dollarsLeftMatch = hint.innerText.match(/\$(-?\d+) left/);
+  var dollarsLeft = dollarsLeftMatch ? parseInt(dollarsLeftMatch[1]) : null;
+  var afterThis = dollarsLeft !== null ? Math.round(dollarsLeft - thisShiftCost) : null;
+  var afterColor = afterThis === null ? 'var(--text3)' : afterThis < 0 ? 'var(--danger)' : afterThis < 30 ? 'var(--warn)' : 'var(--teal)';
+
+  // Add a second line below the existing hint
+  var existingTop = hint.innerHTML.split('<div id="_shift_after_hint"')[0];
+  hint.innerHTML = existingTop
+    + '<div id="_shift_after_hint" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)">'
+      + 'This shift: <strong style="color:var(--text1)">' + hours.toFixed(1) + ' hrs \u00B7 $' + thisShiftCost.toFixed(2) + '</strong>'
+      + (afterThis !== null
+          ? ' \u2192 <strong style="color:' + afterColor + '">$' + afterThis + ' left</strong> after'
+          : '')
+    + '</div>';
+}
 
 function showShiftModal(weekStart, date, shiftId, sectionId) {
   var existing = shiftId ? getShiftsForWeek(weekStart).find(function(s){ return s.shift_id===shiftId; }) : null;
@@ -6752,12 +6906,27 @@ function showShiftModal(weekStart, date, shiftId, sectionId) {
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'
       + '<div class="form-group" style="margin-bottom:0">'
         + '<label class="form-label">Start</label>'
-        + '<input id="shift-start" class="form-input" type="time" value="' + (existing?existing.start:'') + '" placeholder="08:00">'
+        + '<input id="shift-start" class="form-input" type="time" oninput="_updateShiftBudgetHint()" value="' + (existing?existing.start:'') + '" placeholder="08:00">'
       + '</div>'
       + '<div class="form-group" style="margin-bottom:0">'
         + '<label class="form-label">End</label>'
-        + '<input id="shift-end" class="form-input" type="time" value="' + (existing?existing.end:'') + '" placeholder="16:00">'
+        + '<input id="shift-end" class="form-input" type="time" oninput="_updateShiftBudgetHint()" value="' + (existing?existing.end:'') + '" placeholder="16:00">'
       + '</div>'
+    + '</div>'
+    // Phase 14b polish: live budget hint as operator picks times
+    + '<div id="shift-budget-hint" style="font-size:12px;color:var(--text2);margin:-4px 0 12px;padding:8px 10px;background:var(--bg3);border-radius:4px;line-height:1.5">'
+      + (function(){
+          var rem = getDayBudgetRemaining(weekStart, date, sectionId || (existing && existing.section) || 'BOH', shiftId);
+          if (!rem) return '<span style="color:var(--text3);font-style:italic">Set sales target on the schedule day to see budget</span>';
+          var emp = existing ? getEmployeeById(existing.employee_id) : null;
+          var rate = emp && parseFloat(emp.rate) > 0 ? parseFloat(emp.rate)
+                   : (sectionId === 'FOH' ? (DB.restaurantProfile.foh_rate || 12) : (DB.restaurantProfile.boh_rate || 15));
+          var hoursAtBudget = rate > 0 ? (rem.dollars_left / rate).toFixed(1) : '?';
+          var color = rem.dollars_left < 0 ? 'var(--danger)' : rem.dollars_left < 30 ? 'var(--warn)' : 'var(--teal)';
+          return '<span style="color:' + color + ';font-weight:600">$' + Math.round(rem.dollars_left) + ' left</span>'
+            + ' <span style="color:var(--text3)">in budget</span><br>'
+            + '<span style="color:var(--text3);font-size:11px">at ~$' + rate.toFixed(2) + '/hr you can schedule about <strong style="color:var(--text1)">' + hoursAtBudget + ' hrs</strong></span>';
+        })()
     + '</div>'
     + '<div class="form-group">'
       + '<label class="form-label">Notes (optional)</label>'
@@ -7694,60 +7863,418 @@ function tipPool() {
 
 // ─── TIME CLOCK PAGE ──────────────────────────────────────────
 
-function timeclock() {
-  var today = new Date().toISOString().slice(0,10);
-  var now   = new Date();
-  var timeStr = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-  var dateStr = now.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
-  var employees = getEmployees();
 
-  // Check who is currently clocked in (has clock_in but no clock_out today)
-  var clockedIn = (DB.laborLog||[]).filter(function(e){
-    return e.date === today && e.clock_in && !e.clock_out;
+
+/**
+ * getEmployeeHoursThisWeek(employeeId)
+ * Returns total hours worked this week (Mon-Sun) including currently open shift estimate.
+ */
+function getEmployeeHoursThisWeek(employeeId) {
+  if (!employeeId) return 0;
+  var bounds = (typeof getWeekBounds === 'function') ? getWeekBounds(0) : null;
+  if (!bounds) return 0;
+  var weekStart = bounds.start;
+  var weekEnd = bounds.end;
+  var total = 0;
+  (DB.laborLog || []).forEach(function(e) {
+    if (e.employee_id !== employeeId) return;
+    if (e.date < weekStart || e.date > weekEnd) return;
+    if (e.hours && e.hours > 0) {
+      total += parseFloat(e.hours) || 0;
+    } else if (e.clock_in && !e.clock_out) {
+      // Currently clocked in — estimate elapsed hours
+      var now = new Date();
+      var today = now.toISOString().slice(0,10);
+      if (e.date === today) {
+        var inParts = e.clock_in.split(':').map(Number);
+        var inMins = inParts[0] * 60 + (inParts[1] || 0);
+        var nowMins = now.getHours() * 60 + now.getMinutes();
+        if (nowMins < inMins) nowMins += 24 * 60;
+        total += (nowMins - inMins) / 60;
+      }
+    }
   });
+  return Math.round(total * 10) / 10;
+}
 
-  var clockedInHtml = clockedIn.length
-    ? '<div style="margin-bottom:20px">'
-        + '<div style="font-size:10px;color:var(--teal);font-family:\'JetBrains Mono\',monospace;letter-spacing:1px;margin-bottom:8px">CURRENTLY CLOCKED IN</div>'
-        + clockedIn.map(function(e) {
-            var emp = getEmployeeById(e.employee_id);
-            return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.2);border-radius:var(--r);margin-bottom:6px">'
-              + '<div>'
-                + '<div style="font-size:13px;font-weight:600">' + (e.employee||'Unknown') + '</div>'
-                + '<div style="font-size:11px;color:var(--text3)">In since ' + e.clock_in + '</div>'
+/**
+ * getElapsedShiftDuration(clockIn)
+ * Returns "4h 23m" string for the running shift.
+ */
+function getElapsedShiftDuration(clockIn) {
+  if (!clockIn) return '';
+  var inParts = clockIn.split(':').map(Number);
+  var inMins = inParts[0] * 60 + (inParts[1] || 0);
+  var now = new Date();
+  var nowMins = now.getHours() * 60 + now.getMinutes();
+  if (nowMins < inMins) nowMins += 24 * 60;
+  var diff = nowMins - inMins;
+  var h = Math.floor(diff / 60);
+  var m = diff % 60;
+  return h + 'h ' + (m < 10 ? '0' + m : m) + 'm';
+}
+
+/**
+ * _tcStartTimer()
+ * Starts a 60-second auto-refresh of the time clock display so the
+ * running timer updates without a manual refresh. Cleared on navigation.
+ */
+function _tcStartTimer() {
+  if (window._tcTimerInterval) clearInterval(window._tcTimerInterval);
+  window._tcTimerInterval = setInterval(function() {
+    if (A.page !== 'timeclock') {
+      clearInterval(window._tcTimerInterval);
+      window._tcTimerInterval = null;
+      return;
+    }
+    // Update only the timer display elements (don't redraw whole page — keypad state would reset)
+    document.querySelectorAll('[data-tc-timer]').forEach(function(el) {
+      var clockIn = el.getAttribute('data-tc-timer');
+      el.textContent = getElapsedShiftDuration(clockIn);
+    });
+    // Also update the big clock at top
+    var clockEl = document.getElementById('tc-bigclock');
+    if (clockEl) {
+      var now = new Date();
+      clockEl.textContent = now.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+    }
+  }, 60000); // every minute
+}
+
+
+function getStuckShifts() {
+  if (!DB.laborLog) return [];
+  var today = new Date().toISOString().slice(0,10);
+  var now = new Date();
+  var out = [];
+  DB.laborLog.forEach(function(e) {
+    if (!e.clock_in || e.clock_out) return;
+    if (e.date < today) { out.push(e); return; }
+    if (e.date === today) {
+      var inParts = e.clock_in.split(':').map(Number);
+      var inMins = inParts[0] * 60 + (inParts[1] || 0);
+      var nowMins = now.getHours() * 60 + now.getMinutes();
+      if (nowMins < inMins) nowMins += 24 * 60;
+      var elapsedHours = (nowMins - inMins) / 60;
+      if (elapsedHours >= 14) out.push(e);
+    }
+  });
+  return out;
+}
+
+function isManagerPin(pin) {
+  if (!pin || pin.length < 4) return null;
+  var emp = (DB.employees || []).find(function(e){
+    return e.pin === String(pin) && e.active !== false && e.is_manager === true;
+  });
+  return emp || null;
+}
+
+function showManagerPinPrompt(purposeText, callback) {
+  var ex = document.getElementById('_mgrpin_modal'); if (ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.className = 'modal-overlay'; ov.id = '_mgrpin_modal';
+  window._mgrPinBuf = '';
+  window._mgrPinAttempts = 0;
+  window._mgrPinCallback = callback;
+  ov.innerHTML = '<div class="modal-box" style="max-width:380px;text-align:center">'
+    + '<div class="modal-title" style="text-align:center;justify-content:center">MANAGER PIN'
+      + '<button class="modal-close" onclick="document.getElementById(\'_mgrpin_modal\').remove()">\u00D7</button>'
+    + '</div>'
+    + '<div style="font-size:13px;color:var(--text2);margin-bottom:14px">' + (purposeText || 'Enter manager PIN to continue') + '</div>'
+    + '<div id="mgrpin-display" style="font-family:\'JetBrains Mono\',monospace;font-size:36px;letter-spacing:12px;color:var(--text1);margin-bottom:12px;min-height:48px">\u2014\u2014\u2014\u2014</div>'
+    + '<div id="mgrpin-status" style="font-size:12px;color:var(--text3);min-height:18px;margin-bottom:14px"></div>'
+    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:240px;margin:0 auto">'
+    + [1,2,3,4,5,6,7,8,9,'',0,'\u232B'].map(function(k) {
+        var isNum = typeof k === 'number';
+        var isClear = k === '\u232B';
+        if (k === '') return '<div></div>';
+        var arg = isNum ? k : '\'clear\'';
+        var bg = isClear ? 'rgba(239,68,68,.08)' : 'var(--bg3)';
+        var col = isClear ? 'var(--danger)' : 'var(--text1)';
+        return '<button onclick="_mgrPinKey(' + arg + ')" '
+          + 'style="height:62px;font-family:\'Bebas Neue\',sans-serif;font-size:24px;border-radius:var(--r);border:1.5px solid var(--border);background:' + bg + ';color:' + col + ';cursor:pointer;font-weight:600">' + k + '</button>';
+      }).join('')
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(ov);
+}
+
+function _mgrPinKey(k) {
+  var disp = document.getElementById('mgrpin-display');
+  var status = document.getElementById('mgrpin-status');
+  if (!disp) return;
+  if (k === 'clear') {
+    window._mgrPinBuf = '';
+    disp.textContent = '\u2014\u2014\u2014\u2014';
+    if (status) status.textContent = '';
+    return;
+  }
+  if (window._mgrPinBuf.length >= 4) window._mgrPinBuf = '';
+  window._mgrPinBuf += String(k);
+  disp.textContent = window._mgrPinBuf.padEnd(4, '\u2014').split('').join('  ');
+  if (window._mgrPinBuf.length === 4) {
+    var mgr = isManagerPin(window._mgrPinBuf);
+    window._mgrPinBuf = '';
+    setTimeout(function(){
+      var d = document.getElementById('mgrpin-display');
+      if (d) d.textContent = '\u2014\u2014\u2014\u2014';
+    }, 1000);
+    if (mgr) {
+      if (status) {
+        status.style.color = 'var(--teal)';
+        status.textContent = '\u2713 ' + mgr.name + ' authorized';
+      }
+      var cb = window._mgrPinCallback;
+      setTimeout(function(){
+        var modal = document.getElementById('_mgrpin_modal');
+        if (modal) modal.remove();
+        if (cb) cb(mgr);
+      }, 700);
+    } else {
+      window._mgrPinAttempts++;
+      if (status) {
+        status.style.color = 'var(--danger)';
+        status.textContent = window._mgrPinAttempts >= 3 ? 'Too many wrong attempts' : 'Not a manager PIN (try again)';
+      }
+      if (window._mgrPinAttempts >= 3) {
+        setTimeout(function(){
+          var m = document.getElementById('_mgrpin_modal');
+          if (m) m.remove();
+        }, 1500);
+      }
+    }
+  }
+}
+
+function showStuckShiftEditModal(laborId) {
+  var entry = (DB.laborLog || []).find(function(e){ return e.labor_id === laborId; });
+  if (!entry) { showToast('Entry not found', 'error'); return; }
+  var emp = entry.employee_id ? getEmployeeById(entry.employee_id) : null;
+  var ex = document.getElementById('_stuck_modal'); if (ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.className = 'modal-overlay'; ov.id = '_stuck_modal';
+  var inParts = entry.clock_in.split(':').map(Number);
+  var suggMins = (inParts[0] * 60 + (inParts[1] || 0)) + (8 * 60);
+  if (suggMins >= 24 * 60) suggMins = 23 * 60 + 59;
+  var suggH = String(Math.floor(suggMins / 60)).padStart(2, '0');
+  var suggM = String(suggMins % 60).padStart(2, '0');
+  var suggOut = suggH + ':' + suggM;
+
+  ov.innerHTML = '<div class="modal-box" style="max-width:420px">'
+    + '<div class="modal-title">FIX STUCK SHIFT'
+      + '<button class="modal-close" onclick="document.getElementById(\'_stuck_modal\').remove()">\u00D7</button>'
+    + '</div>'
+    + '<div style="background:var(--bg3);border-radius:var(--r);padding:12px;margin-bottom:14px">'
+      + '<div style="font-size:14px;font-weight:600;color:var(--text1);margin-bottom:4px">' + (emp ? emp.name : entry.employee || 'Unknown') + '</div>'
+      + '<div style="font-size:12px;color:var(--text3);font-family:monospace">'
+        + entry.date + ' \u00B7 In at ' + fmtTime12(entry.clock_in)
+      + '</div>'
+    + '</div>'
+    + '<div class="form-group" style="margin-bottom:10px">'
+      + '<label class="form-label">Clock-out time</label>'
+      + '<input id="stuck-clockout" class="form-input" type="time" value="' + suggOut + '">'
+      + '<div style="font-size:11px;color:var(--text3);margin-top:4px;font-style:italic">Suggested: 8 hours after clock-in. Adjust as needed.</div>'
+    + '</div>'
+    + '<div class="form-group" style="margin-bottom:14px">'
+      + '<label class="form-label">Notes (optional)</label>'
+      + '<input id="stuck-notes" class="form-input" placeholder="e.g. forgot to clock out, manual fix" value="' + (entry.notes || '').replace(/"/g, '&quot;') + '">'
+    + '</div>'
+    + '<div style="display:flex;gap:8px">'
+      + '<button class="btn btn-primary" style="flex:1" onclick="commitStuckShiftFix(\'' + laborId + '\')">Apply Clock-Out</button>'
+      + '<button class="btn btn-danger btn-sm" onclick="if(confirm(\'Delete this entry? Hours will not be recorded.\')){deleteStuckShift(\'' + laborId + '\')}">Delete</button>'
+      + '<button class="btn btn-ghost" onclick="document.getElementById(\'_stuck_modal\').remove()">Cancel</button>'
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(ov);
+}
+
+function commitStuckShiftFix(laborId) {
+  var entry = (DB.laborLog || []).find(function(e){ return e.labor_id === laborId; });
+  if (!entry) return;
+  var clockOut = (document.getElementById('stuck-clockout') || {}).value || '';
+  var notes = ((document.getElementById('stuck-notes') || {}).value || '').trim();
+  if (!clockOut) { showToast('Set a clock-out time', 'error'); return; }
+  entry.clock_out = clockOut;
+  if (notes) entry.notes = notes;
+  if (typeof saveLaborEntry === 'function') {
+    saveLaborEntry(entry);
+  } else if (typeof saveLabor === 'function') {
+    saveLabor();
+  }
+  var modal = document.getElementById('_stuck_modal');
+  if (modal) modal.remove();
+  if (typeof showToast === 'function') {
+    showToast('\u2713 Shift closed at ' + fmtTime12(clockOut) + ' \u00B7 ' + (entry.hours || 0) + 'h logged', 'success');
+  }
+  drawMain();
+}
+
+function deleteStuckShift(laborId) {
+  if (!DB.laborLog) return;
+  DB.laborLog = DB.laborLog.filter(function(e){ return e.labor_id !== laborId; });
+  if (typeof saveLabor === 'function') saveLabor();
+  var modal = document.getElementById('_stuck_modal');
+  if (modal) modal.remove();
+  showToast('Entry deleted', 'success');
+  drawMain();
+}
+
+function showStuckShiftsList() {
+  showManagerPinPrompt('Enter manager PIN to fix stuck shifts', function(mgr) {
+    var stuck = getStuckShifts();
+    if (!stuck.length) { showToast('No stuck shifts', 'info'); return; }
+    var ex = document.getElementById('_stuck_list'); if (ex) ex.remove();
+    var ov = document.createElement('div');
+    ov.className = 'modal-overlay'; ov.id = '_stuck_list';
+    ov.innerHTML = '<div class="modal-box" style="max-width:520px;max-height:80vh;display:flex;flex-direction:column">'
+      + '<div class="modal-title">STUCK SHIFTS'
+        + '<button class="modal-close" onclick="document.getElementById(\'_stuck_list\').remove()">\u00D7</button>'
+      + '</div>'
+      + '<div style="font-size:12px;color:var(--text3);margin-bottom:14px">' + mgr.name + ' \u00B7 ' + stuck.length + ' shift' + (stuck.length !== 1 ? 's' : '') + ' need fixing</div>'
+      + '<div style="overflow-y:auto;flex:1">'
+        + stuck.map(function(e) {
+            var emp = e.employee_id ? getEmployeeById(e.employee_id) : null;
+            var elapsed = getElapsedShiftDuration(e.clock_in);
+            var color = emp && emp.color ? emp.color : 'var(--warn)';
+            return '<div onclick="document.getElementById(\'_stuck_list\').remove();showStuckShiftEditModal(\'' + e.labor_id + '\')"'
+              + ' style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,159,67,.06);border:1px solid rgba(255,159,67,.25);border-left:4px solid ' + color + ';border-radius:var(--r);margin-bottom:8px;cursor:pointer">'
+              + '<div style="flex:1;min-width:0">'
+                + '<div style="font-size:14px;font-weight:600;color:var(--text1)">' + (emp ? emp.name : e.employee || 'Unknown') + '</div>'
+                + '<div style="font-size:11px;color:var(--text3);font-family:monospace;margin-top:2px">'
+                  + e.date + ' \u00B7 In at ' + fmtTime12(e.clock_in) + ' \u00B7 ' + elapsed + ' open'
+                + '</div>'
               + '</div>'
-              + '<button class="btn btn-teal btn-sm" onclick="clockOutById(\'' + e.labor_id + '\')">Clock Out</button>'
+              + '<button class="btn btn-teal btn-sm">Fix \u2192</button>'
             + '</div>';
           }).join('')
       + '</div>'
-    : '';
+    + '</div>';
+    document.body.appendChild(ov);
+  });
+}
 
-  return '<div style="max-width:420px;margin:0 auto;padding:20px 0">'
-    + '<div style="text-align:center;margin-bottom:24px">'
-      + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:48px;color:var(--text1);line-height:1">' + timeStr + '</div>'
-      + '<div style="font-size:13px;color:var(--text3)">' + dateStr + '</div>'
-    + '</div>'
-    + clockedInHtml
-    + '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:24px;text-align:center">'
-      + '<div style="font-size:14px;font-weight:600;margin-bottom:6px">Enter your PIN</div>'
-      + '<div style="font-size:12px;color:var(--text3);margin-bottom:16px">4-digit code to clock in or out</div>'
-      + '<div id="tc-display" style="font-family:\'JetBrains Mono\',monospace;font-size:32px;letter-spacing:8px;color:var(--text1);margin-bottom:16px;min-height:44px">————</div>'
-      + '<div id="tc-status" style="font-size:12px;color:var(--text3);min-height:20px;margin-bottom:12px"></div>'
-      + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:200px;margin:0 auto">'
-        + [1,2,3,4,5,6,7,8,9,'','0','⌫'].map(function(k) {
-            var isNum = k !== '' && k !== '⌫';
-            var isClear = k === '⌫';
-            return '<button onclick="tcKey(' + (isNum?k:isClear?'\'clear\'':'\'\'') + ')" '
-              + 'style="height:56px;font-family:\'Bebas Neue\',sans-serif;font-size:24px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg3);color:var(--text1);cursor:pointer;transition:background .1s" '
-              + 'onmouseenter="this.style.background=\'var(--bg2)\'" onmouseleave="this.style.background=\'var(--bg3)\'">'
-              + (k === '' ? '' : k)
-            + '</button>';
-          }).join('')
+
+
+/**
+ * _promptToFixTime() — gates Labor Log access behind manager PIN.
+ */
+function _promptToFixTime() {
+  showManagerPinPrompt('Manager PIN required to edit time entries', function(mgr) {
+    go('laborlog');
+  });
+}
+function timeclock() {
+  var today = new Date().toISOString().slice(0,10);
+  var now   = new Date();
+  var timeStr = now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  var dateStr = now.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+  var employees = getEmployees();
+
+  // Empty-state: no employees configured
+  if (!employees.length) {
+    return '<div style="max-width:480px;margin:0 auto;padding:30px 20px;text-align:center">'
+      + '<div style="font-size:48px;margin-bottom:14px">\u23F1</div>'
+      + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:24px;letter-spacing:1.5px;color:var(--text1);margin-bottom:8px">TIME CLOCK</div>'
+      + '<div style="font-size:14px;color:var(--text2);margin-bottom:24px;line-height:1.5">No employees configured yet. Add staff with PINs in Schedule before they can clock in.</div>'
+      + '<button class="btn btn-primary" onclick="go(\'schedule\');setTimeout(showAddEmployeeModal,200)">+ Add Employees</button>'
+    + '</div>';
+  }
+
+  // Stuck shifts (yesterday+ OR today >14h open) - manager-fixable
+  var stuck = (typeof getStuckShifts === 'function') ? getStuckShifts() : [];
+  var stuckBanner = '';
+  if (stuck.length > 0) {
+    stuckBanner = '<div style="background:rgba(255,159,67,.08);border:1px solid rgba(255,159,67,.3);border-left:4px solid var(--warn);border-radius:var(--r);padding:12px 14px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:10px">'
+      + '<div>'
+        + '<div style="font-size:13px;font-weight:700;color:var(--warn)">⚠ ' + stuck.length + ' stuck shift' + (stuck.length !== 1 ? 's' : '') + ' need fixing</div>'
+        + '<div style="font-size:11px;color:var(--text3);margin-top:2px">Forgot to clock out. Manager PIN required to fix.</div>'
       + '</div>'
+      + '<button class="btn btn-teal btn-sm" onclick="showStuckShiftsList()">Fix →</button>'
+    + '</div>';
+  }
+  // Currently clocked in (today, not stuck)
+  var clockedIn = (DB.laborLog||[]).filter(function(e){
+    if (e.date !== today || !e.clock_in || e.clock_out) return false;
+    var inParts = e.clock_in.split(':').map(Number);
+    var inMins = inParts[0] * 60 + (inParts[1] || 0);
+    var nowMins = now.getHours() * 60 + now.getMinutes();
+    if (nowMins < inMins) nowMins += 24 * 60;
+    return (nowMins - inMins) / 60 < 14;
+  });
+
+  // Start auto-refresh timer for running shifts (only if any are running)
+  if (clockedIn.length > 0) {
+    setTimeout(function(){ if (typeof _tcStartTimer === 'function') _tcStartTimer(); }, 100);
+  }
+
+  // ── CLOCKED IN LIST (with running timer) ────────────────────────
+  var clockedInHtml = '';
+  if (clockedIn.length) {
+    clockedInHtml = '<div style="margin-bottom:24px">'
+      + '<div style="font-size:11px;color:var(--teal);font-family:\'JetBrains Mono\',monospace;letter-spacing:1.5px;margin-bottom:10px">CURRENTLY CLOCKED IN \u00B7 ' + clockedIn.length + '</div>'
+      + clockedIn.map(function(e) {
+          var emp = getEmployeeById(e.employee_id);
+          var elapsed = getElapsedShiftDuration(e.clock_in);
+          var weekHrs = getEmployeeHoursThisWeek(e.employee_id);
+          var weekColor = weekHrs >= 40 ? 'var(--warn)' : weekHrs >= 35 ? 'var(--orange)' : 'var(--text3)';
+          var color = emp && emp.color ? emp.color : 'var(--teal)';
+          return '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.2);border-left:4px solid ' + color + ';border-radius:var(--r);margin-bottom:8px">'
+            + '<div style="flex:1;min-width:0">'
+              + '<div style="font-size:16px;font-weight:700;color:var(--text1);margin-bottom:4px">' + (e.employee || (emp ? emp.name : 'Unknown')) + '</div>'
+              + '<div style="font-size:12px;color:var(--text3);font-family:monospace">'
+                + 'In since ' + fmtTime12(e.clock_in)
+                + ' \u00B7 <span data-tc-timer="' + e.clock_in + '" style="color:var(--teal);font-weight:700">' + elapsed + '</span>'
+              + '</div>'
+              + '<div style="font-size:11px;color:' + weekColor + ';margin-top:3px;font-family:monospace">Week so far: ' + weekHrs.toFixed(1) + 'h' + (weekHrs >= 40 ? ' \u26A0 OT' : '') + '</div>'
+            + '</div>'
+            + '<button class="btn btn-teal" onclick="clockOutById(\'' + e.labor_id + '\')" style="min-height:54px;font-size:14px;padding:0 20px">Clock Out</button>'
+          + '</div>';
+        }).join('')
+    + '</div>';
+  }
+
+  // ── PIN KEYPAD (large, glove-friendly) ──────────────────────────
+  var pinPad = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:24px 20px;text-align:center">'
+    + '<div style="font-size:16px;font-weight:600;color:var(--text1);margin-bottom:4px">Enter your PIN</div>'
+    + '<div style="font-size:12px;color:var(--text3);margin-bottom:18px">4-digit code to clock in or out</div>'
+    + '<div id="tc-display" style="font-family:\'JetBrains Mono\',monospace;font-size:42px;letter-spacing:14px;color:var(--text1);margin-bottom:14px;min-height:54px">\u2014\u2014\u2014\u2014</div>'
+    + '<div id="tc-status" style="font-size:14px;color:var(--text3);min-height:36px;margin-bottom:18px;font-weight:500"></div>'
+    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:280px;margin:0 auto">'
+      + [1,2,3,4,5,6,7,8,9,'',0,'\u232B'].map(function(k) {
+          var isNum = typeof k === 'number';
+          var isClear = k === '\u232B';
+          var isEmpty = k === '';
+          if (isEmpty) return '<div></div>';
+          var arg = isNum ? k : '\'clear\'';
+          var bg = isClear ? 'rgba(239,68,68,.08)' : 'var(--bg3)';
+          var col = isClear ? 'var(--danger)' : 'var(--text1)';
+          return '<button onclick="tcKey(' + arg + ')" '
+            + 'style="height:80px;font-family:\'Bebas Neue\',sans-serif;font-size:32px;border-radius:var(--r);border:1.5px solid var(--border);background:' + bg + ';color:' + col + ';cursor:pointer;transition:all .1s;font-weight:600" '
+            + 'onmouseenter="this.style.background=\'var(--bg2)\';this.style.borderColor=\'var(--orange)\'" '
+            + 'onmouseleave="this.style.background=\'' + bg + '\';this.style.borderColor=\'var(--border)\'">'
+            + k
+          + '</button>';
+        }).join('')
     + '</div>'
-    + '<div style="margin-top:16px;font-size:11px;color:var(--text3);text-align:center">No PIN set? Ask your manager. PIN is set in Schedule → employee settings.</div>'
+  + '</div>';
+
+  return '<div style="max-width:520px;margin:0 auto;padding:20px 0">'
+    + '<div style="text-align:center;margin-bottom:30px">'
+      + '<div id="tc-bigclock" style="font-family:\'Bebas Neue\',sans-serif;font-size:64px;letter-spacing:2px;color:var(--text1);line-height:1">' + timeStr + '</div>'
+      + '<div style="font-size:14px;color:var(--text3);margin-top:4px">' + dateStr + '</div>'
+    + '</div>'
+    + stuckBanner
+    + clockedInHtml
+    + pinPad
+    + '<div style="margin-top:20px;font-size:12px;color:var(--text3);text-align:center;padding:0 20px;line-height:1.5">'
+      + 'No PIN set? Ask your manager. PINs are set when adding employees in Schedule.'
+      + '<br><br>'
+      + '<button onclick="_promptToFixTime()" style="background:transparent;border:none;color:var(--text2);text-decoration:underline;cursor:pointer;font-size:11px;font-family:inherit">Fix a time entry →</button>'
+    + '</div>'
   + '</div>';
 }
+
 
 // ─── TIME CLOCK LOGIC ─────────────────────────────────────────
 
@@ -7789,13 +8316,25 @@ function tcKey(k) {
     if (openEntry) {
       clockOutById(openEntry.labor_id);
       display.style.color = 'var(--teal)';
-      if (status) { status.style.color='var(--teal)'; status.textContent='👋 Goodbye ' + emp.name + '!'; }
+      if (status) {
+        status.style.color = 'var(--teal)';
+        var totalHrs = getEmployeeHoursThisWeek(emp.id);
+        status.innerHTML = '<div style="font-size:18px;font-weight:700">\uD83D\uDC4B Goodbye ' + emp.name + '!</div>'
+          + '<div style="font-size:12px;color:var(--text3);margin-top:4px">Week total: ' + totalHrs.toFixed(1) + ' hrs</div>';
+      }
     } else {
       clockInEmployee(emp);
       display.style.color = 'var(--teal)';
-      if (status) { status.style.color='var(--teal)'; status.textContent='✓ Welcome ' + emp.name + '!'; }
+      if (status) {
+        status.style.color = 'var(--teal)';
+        var weekHrs = getEmployeeHoursThisWeek(emp.id);
+        var hrsHint = weekHrs > 0
+          ? '<div style="font-size:12px;color:var(--text3);margin-top:4px">' + weekHrs.toFixed(1) + ' hrs this week so far</div>'
+          : '<div style="font-size:12px;color:var(--text3);margin-top:4px">First shift this week</div>';
+        status.innerHTML = '<div style="font-size:18px;font-weight:700">\u2713 Welcome ' + emp.name + '!</div>' + hrsHint;
+      }
     }
-    setTimeout(function(){ display.style.color='var(--text1)'; drawMain(); }, 1800);
+    setTimeout(function(){ display.style.color='var(--text1)'; drawMain(); }, 2400);
   }
 }
 
@@ -7854,7 +8393,7 @@ function printSchedule(weekStart) {
     var cells = days.map(function(date) {
       var dayShifts = shifts.filter(function(s){ return s.employee_id===emp.id && s.date===date; });
       return '<td style="padding:4px 6px;text-align:center;font-size:10px;border:1px solid #e5e7eb;min-width:70px">'
-        + (dayShifts.length ? dayShifts.map(function(s){ return '<div style="font-weight:600">'+s.start+'–'+s.end+'</div>'+(s.notes?'<div style="color:#888;font-size:9px">'+s.notes+'</div>':''); }).join('') : '<span style="color:#ddd">—</span>')
+        + (dayShifts.length ? dayShifts.map(function(s){ return '<div style="font-weight:600">'+fmtTime12(s.start)+'–'+fmtTime12(s.end)+'</div>'+(s.notes?'<div style="color:#888;font-size:9px">'+s.notes+'</div>':''); }).join('') : '<span style="color:#ddd">—</span>')
       + '</td>';
     }).join('');
     var wh = round2(getScheduledHoursForEmployee(emp.id, weekStart));
@@ -16889,10 +17428,13 @@ function renderLineCheckTab() {
 
         // Notes
         var notesCell = '<td style="padding:8px 8px">'
-          + '<input type="text" placeholder="Notes\u2026" value="' + (entry.notes || '').replace(/"/g, '&quot;') + '"'
-            + ' onchange="setLcEntry(\'' + today + '\',\'' + station + '\',\'' + it.recipe_id + '\',{notes:this.value})"'
-            + ' style="width:100%;min-width:100px;background:var(--bg3);border:1px solid var(--border);'
-            + 'border-radius:4px;padding:4px 7px;font-size:11px;color:var(--text2);height:32px;box-sizing:border-box">'
+          + '<div style="display:flex;gap:4px;align-items:center">'
+            + '<input type="text" placeholder="Notes\u2026" value="' + (entry.notes || '').replace(/"/g, '&quot;') + '"'
+              + ' onchange="setLcEntry(\'' + today + '\',\'' + station + '\',\'' + it.recipe_id + '\',{notes:this.value})"'
+              + ' style="flex:1;min-width:80px;background:var(--bg3);border:1px solid var(--border);'
+              + 'border-radius:4px;padding:4px 7px;font-size:11px;color:var(--text2);height:32px;box-sizing:border-box">'
+            + lcEvidenceIndicator(today, station, it.recipe_id)
+          + '</div>'
         + '</td>';
 
         rowsHtml += '<tr id="lc-row-' + it.recipe_id + '"'
@@ -18588,6 +19130,226 @@ function setLcNotes(date, station, recipe_id, val) {
  * lcCheckCellHtml(date, station, recipe_id, checkKey)
  * Returns HTML for a single check cell — two tap targets (Pass / Fail), no dropdowns.
  */
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE 14e — LINE CHECK EVIDENCE (photo + voice + note)
+═══════════════════════════════════════════════════════════ */
+
+function showLcEvidenceModal(date, station, recipeId) {
+  var entry = getLcEntry(date, station, recipeId);
+  var recipe = DB.recipes.find(function(r){ return r.recipe_id === recipeId; });
+  var ex = document.getElementById('_lc_evidence_modal'); if (ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.className = 'modal-overlay'; ov.id = '_lc_evidence_modal';
+  var initialTab = (entry.evidence && entry.evidence.note) ? 'note'
+                 : (entry.evidence && entry.evidence.voice_text) ? 'voice'
+                 : 'photo';
+  ov.innerHTML = '<div class="modal-box" style="max-width:440px">'
+    + '<div class="modal-title">ADD EVIDENCE \u00B7 ' + (recipe ? recipe.name : recipeId)
+      + '<button class="modal-close" onclick="document.getElementById(\'_lc_evidence_modal\').remove()">\u00D7</button>'
+    + '</div>'
+    + '<div style="display:flex;gap:6px;margin-bottom:14px">'
+      + ['photo','voice','note'].map(function(t) {
+          var labels = {photo:'\u{1F4F7} Photo', voice:'\u{1F3A4} Voice', note:'\u{1F4DD} Note'};
+          return '<button onclick="_lcEvSwitchTab(\'' + t + '\',\'' + date + '\',\'' + station + '\',\'' + recipeId + '\')" '
+            + 'data-evtab="' + t + '" '
+            + 'style="flex:1;padding:10px;font-size:13px;font-weight:600;cursor:pointer;'
+            + 'background:' + (initialTab===t?'var(--orange)':'var(--bg3)') + ';'
+            + 'color:' + (initialTab===t?'#fff':'var(--text2)') + ';'
+            + 'border:1px solid var(--border);border-radius:6px;min-height:44px">'
+            + labels[t]
+          + '</button>';
+        }).join('')
+    + '</div>'
+    + '<div id="lc-ev-body"></div>'
+  + '</div>';
+  document.body.appendChild(ov);
+  _lcEvSwitchTab(initialTab, date, station, recipeId);
+}
+
+function _lcEvSwitchTab(tab, date, station, recipeId) {
+  var body = document.getElementById('lc-ev-body');
+  if (!body) return;
+  document.querySelectorAll('[data-evtab]').forEach(function(btn) {
+    var on = btn.getAttribute('data-evtab') === tab;
+    btn.style.background = on ? 'var(--orange)' : 'var(--bg3)';
+    btn.style.color = on ? '#fff' : 'var(--text2)';
+  });
+  var entry = getLcEntry(date, station, recipeId);
+  var ev = entry.evidence || {};
+  var argsStr = "'" + date + "','" + station + "','" + recipeId + "'";
+
+  if (tab === 'photo') {
+    body.innerHTML = (ev.photo
+        ? '<div style="margin-bottom:12px;text-align:center">'
+            + '<img src="' + ev.photo + '" style="max-width:100%;max-height:240px;border-radius:6px;border:1px solid var(--border)">'
+          + '</div>'
+        : '<div style="padding:24px 12px;text-align:center;background:var(--bg3);border:1px dashed var(--border);border-radius:6px;margin-bottom:12px">'
+            + '<div style="font-size:36px;margin-bottom:8px">\u{1F4F7}</div>'
+            + '<div style="font-size:12px;color:var(--text3);line-height:1.5">Take a photo of the temp gun, the food, or anything you want to document.</div>'
+          + '</div>')
+      + '<input type="file" accept="image/*" capture="environment" id="lc-ev-photo-input" onchange="_lcEvPhotoCapture(event,' + argsStr + ')" style="display:none">'
+      + '<div style="display:flex;gap:8px">'
+        + '<button class="btn btn-primary" style="flex:1;min-height:48px" onclick="document.getElementById(\'lc-ev-photo-input\').click()">' + (ev.photo ? '\u{1F4F7} Replace photo' : '\u{1F4F7} Take photo') + '</button>'
+        + (ev.photo ? '<button class="btn btn-danger btn-sm" onclick="_lcEvClear(\'photo\',' + argsStr + ')">Remove</button>' : '')
+      + '</div>';
+  }
+  else if (tab === 'voice') {
+    var hasSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+    body.innerHTML = (ev.voice_text
+        ? '<div style="padding:12px 14px;background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.25);border-radius:6px;margin-bottom:12px;font-size:14px;line-height:1.5;color:var(--text1)">"' + ev.voice_text.replace(/"/g, '&quot;') + '"</div>'
+        : '<div style="padding:24px 12px;text-align:center;background:var(--bg3);border:1px dashed var(--border);border-radius:6px;margin-bottom:12px">'
+            + '<div style="font-size:36px;margin-bottom:8px">\u{1F3A4}</div>'
+            + '<div style="font-size:12px;color:var(--text3);line-height:1.5">' + (hasSpeech ? 'Hands-free note. Tap below, speak, system transcribes.' : 'Voice not supported on this browser. Try Chrome on Android or Safari on iOS.') + '</div>'
+          + '</div>')
+      + '<div id="lc-ev-voice-status" style="font-size:11px;color:var(--text3);text-align:center;min-height:18px;margin-bottom:8px"></div>'
+      + '<div style="display:flex;gap:8px">'
+        + (hasSpeech
+            ? '<button class="btn btn-primary" style="flex:1;min-height:48px" id="lc-ev-voice-btn" onclick="_lcEvVoiceStart(' + argsStr + ')">\u{1F3A4} Start recording</button>'
+            : '<button class="btn btn-ghost" style="flex:1;min-height:48px" disabled>Voice not available</button>')
+        + (ev.voice_text ? '<button class="btn btn-danger btn-sm" onclick="_lcEvClear(\'voice_text\',' + argsStr + ')">Clear</button>' : '')
+      + '</div>';
+  }
+  else if (tab === 'note') {
+    body.innerHTML = '<textarea id="lc-ev-note-input" rows="4" placeholder="Type a note about this check..."'
+        + ' style="width:100%;padding:10px;font-size:14px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);box-sizing:border-box;font-family:inherit;resize:vertical;margin-bottom:12px">' + (ev.note || '').replace(/</g, '&lt;') + '</textarea>'
+      + '<div style="display:flex;gap:8px">'
+        + '<button class="btn btn-primary" style="flex:1;min-height:48px" onclick="_lcEvSaveNote(' + argsStr + ')">Save note</button>'
+        + (ev.note ? '<button class="btn btn-danger btn-sm" onclick="_lcEvClear(\'note\',' + argsStr + ')">Clear</button>' : '')
+      + '</div>';
+  }
+}
+
+function _lcEvPhotoCapture(event, date, station, recipeId) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var dataUrl = e.target.result;
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var maxDim = 1200;
+      var w = img.width, h = img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) { h = h * (maxDim / w); w = maxDim; }
+        else       { w = w * (maxDim / h); h = maxDim; }
+      }
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      var compressed = canvas.toDataURL('image/jpeg', 0.7);
+      _lcEvPersist(date, station, recipeId, { photo: compressed });
+      _lcEvSwitchTab('photo', date, station, recipeId);
+      if (typeof showToast === 'function') showToast('\u2713 Photo saved', 'success');
+    };
+    img.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+function _lcEvVoiceStart(date, station, recipeId) {
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { showToast('Voice not supported', 'error'); return; }
+  var btn = document.getElementById('lc-ev-voice-btn');
+  var status = document.getElementById('lc-ev-voice-status');
+  if (window._lcVoiceRec && window._lcVoiceRec._active) {
+    window._lcVoiceRec.stop();
+    return;
+  }
+  var rec = new SR();
+  rec.lang = 'en-US';
+  rec.interimResults = true;
+  rec.continuous = true;
+  rec.maxAlternatives = 1;
+  var transcript = '';
+  rec._active = true;
+  if (btn) {
+    btn.textContent = '\u23F9 Stop recording';
+    btn.style.background = 'var(--danger)';
+  }
+  if (status) status.textContent = '\u{1F534} Listening... speak now';
+  rec.onresult = function(event) {
+    var t = '';
+    for (var i = 0; i < event.results.length; i++) {
+      t += event.results[i][0].transcript;
+    }
+    transcript = t.trim();
+    if (status) status.textContent = '\u{1F534} ' + (transcript || 'Listening...');
+  };
+  rec.onerror = function(event) {
+    if (status) status.textContent = 'Error: ' + event.error;
+    rec._active = false;
+    if (btn) {
+      btn.textContent = '\u{1F3A4} Start recording';
+      btn.style.background = 'var(--orange)';
+    }
+  };
+  rec.onend = function() {
+    rec._active = false;
+    if (btn) {
+      btn.textContent = '\u{1F3A4} Start recording';
+      btn.style.background = 'var(--orange)';
+    }
+    if (transcript) {
+      _lcEvPersist(date, station, recipeId, { voice_text: transcript });
+      _lcEvSwitchTab('voice', date, station, recipeId);
+      if (typeof showToast === 'function') showToast('\u2713 Voice note saved', 'success');
+    } else {
+      if (status) status.textContent = 'No speech detected';
+    }
+  };
+  rec.start();
+  window._lcVoiceRec = rec;
+}
+
+function _lcEvSaveNote(date, station, recipeId) {
+  var input = document.getElementById('lc-ev-note-input');
+  if (!input) return;
+  var note = (input.value || '').trim();
+  if (!note) { showToast('Type a note first', 'error'); return; }
+  _lcEvPersist(date, station, recipeId, { note: note });
+  _lcEvSwitchTab('note', date, station, recipeId);
+  if (typeof showToast === 'function') showToast('\u2713 Note saved', 'success');
+}
+
+function _lcEvClear(field, date, station, recipeId) {
+  if (!confirm('Remove this ' + field.replace('_text','') + '?')) return;
+  var entry = getLcEntry(date, station, recipeId);
+  var ev = entry.evidence || {};
+  delete ev[field];
+  setLcEntry(date, station, recipeId, { evidence: ev });
+  _lcEvSwitchTab(field === 'photo' ? 'photo' : field === 'voice_text' ? 'voice' : 'note', date, station, recipeId);
+  if (typeof drawMain === 'function') {
+    drawMain.preserveScroll = true;
+    drawMain();
+  }
+}
+
+function _lcEvPersist(date, station, recipeId, fields) {
+  var entry = getLcEntry(date, station, recipeId);
+  var ev = entry.evidence || {};
+  Object.assign(ev, fields);
+  setLcEntry(date, station, recipeId, { evidence: ev });
+}
+
+function lcEvidenceIndicator(date, station, recipeId) {
+  var entry = getLcEntry(date, station, recipeId);
+  var ev = entry.evidence || {};
+  var count = (ev.photo ? 1 : 0) + (ev.voice_text ? 1 : 0) + (ev.note ? 1 : 0);
+  var hasFailure = entry.checks && Object.keys(entry.checks).some(function(k){ return entry.checks[k] === 'fail'; });
+  var attentionColor = hasFailure && count === 0 ? 'var(--danger)' : count > 0 ? 'var(--teal)' : 'var(--text3)';
+  var label = count > 0 ? '\u{1F4CE} ' + count : (hasFailure ? '+ Note' : '\u{1F4CE}');
+  var title = count > 0
+    ? ((ev.photo ? 'Photo \u00B7 ' : '') + (ev.voice_text ? 'Voice \u00B7 ' : '') + (ev.note ? 'Note' : '')).replace(/\u00B7\s*$/, '').trim()
+    : 'Add photo, voice note, or text';
+  return '<button onclick="event.stopPropagation();showLcEvidenceModal(\'' + date + '\',\'' + station + '\',\'' + recipeId + '\')" '
+    + 'title="' + title + '" '
+    + 'style="background:transparent;border:1px solid ' + (count > 0 || hasFailure ? attentionColor : 'var(--border)') + ';color:' + attentionColor + ';font-size:10px;padding:3px 7px;border-radius:10px;cursor:pointer;line-height:1.2;font-family:inherit;white-space:nowrap">'
+    + label
+  + '</button>';
+}
+
 function lcCheckCellHtml(date, station, recipe_id, checkKey) {
   // Glyph-only color design per user spec:
   //   Default state: black background, white check-type icon
@@ -26445,6 +27207,580 @@ function generateDemoSalesAndLabor() {
  *   reset=false: ADD demo data without removing existing
  * Restaurant profile defaults to Full Service if unset.
  */
+
+/* ═══════════════════════════════════════════════════════════
+   THE BURNT SPOON — FULL DEMO RESTAURANT
+   Comprehensive seed for UI testing every screen.
+   80-seat Full Service American w/ craft cocktail bar.
+═══════════════════════════════════════════════════════════ */
+
+var BS_PROFILE = {
+  name:                 'The Burnt Spoon',
+  type:                 'Full Service',
+  food_cost_target:     30,
+  bev_cost_target:      22,
+  qfactor:              1.03,
+  prime_cost_target:    60,
+  onboarded:            true,
+  slow_day:             2,                 // Tuesday
+  boh_rate:             18,
+  foh_rate:             14,
+  labor_target:         28,
+  labor_target_dow:     [24, 30, 28, 25, 24, 20, 20],
+  foh_target_dow:       [8, 10, 9, 9, 8, 7, 7],
+  daily_ot_threshold:   8,
+  weekly_ot_threshold:  40,
+  cc_fee_pct:           2.75,
+  sales_tax_rate:       8.5,
+};
+
+var BS_EMPLOYEES = [
+  // Management (manager flag true)
+  { id:'emp-bs-1',  name:'Alex Rivera',   role:'Sous Chef',   rate:24.00, pin:'1001', color:'#cc4400', is_manager:true,  active:true },
+  { id:'emp-bs-2',  name:'Jordan Chen',   role:'Manager',     rate:22.00, pin:'1002', color:'#7c3aed', is_manager:true,  active:true },
+  // BOH
+  { id:'emp-bs-3',  name:'Marcus Kim',    role:'Line Cook',   rate:19.00, pin:'1003', color:'#f59e0b', is_manager:false, active:true },
+  { id:'emp-bs-4',  name:'Devon Smith',   role:'Line Cook',   rate:18.00, pin:'1004', color:'#84cc16', is_manager:false, active:true },
+  { id:'emp-bs-5',  name:'Priya Patel',   role:'Prep Cook',   rate:16.50, pin:'1005', color:'#06b6d4', is_manager:false, active:true },
+  { id:'emp-bs-6',  name:'Tomas Reyes',   role:'Dishwasher',  rate:15.50, pin:'1006', color:'#22c55e', is_manager:false, active:true },
+  // FOH
+  { id:'emp-bs-7',  name:'Sofia Lopez',   role:'Server',      rate:8.50,  pin:'2001', color:'#a855f7', is_manager:false, active:true },
+  { id:'emp-bs-8',  name:'Nina Brooks',   role:'Server',      rate:8.50,  pin:'2002', color:'#ec4899', is_manager:false, active:true },
+  { id:'emp-bs-9',  name:'Ben Carter',    role:'Server',      rate:8.50,  pin:'2003', color:'#3b82f6', is_manager:false, active:true },
+  { id:'emp-bs-10', name:'Maya Singh',    role:'Host',        rate:14.00, pin:'2004', color:'#0ea5e9', is_manager:false, active:true },
+  // Bar
+  { id:'emp-bs-11', name:'Riley Park',    role:'Bartender',   rate:13.00, pin:'3001', color:'#14b8a6', is_manager:false, active:true },
+  { id:'emp-bs-12', name:'Sam Torres',    role:'Bartender',   rate:13.00, pin:'3002', color:'#ef4444', is_manager:false, active:true },
+];
+
+var BS_VENDORS = [
+  { id:'vnd-bs-1', name:'US Foods',          contact:'Mike Torres',  phone:'800-555-0101', lead_days:2, notes:'Main dry goods + proteins. Order Wed for Fri delivery.' },
+  { id:'vnd-bs-2', name:'Local Farms Co.',   contact:'Sarah Chen',   phone:'555-0192',     lead_days:1, notes:'Fresh produce twice weekly. Call day before.' },
+  { id:'vnd-bs-3', name:'Sysco',             contact:'Dave Nguyen',  phone:'800-555-0203', lead_days:2, notes:'Backup supplier. Frozen + paper goods.' },
+  { id:'vnd-bs-4', name:'City Bread & Buns', contact:'Ana Diaz',     phone:'555-0147',     lead_days:1, notes:'Bakery items. Order before 2pm for next-day.' },
+  { id:'vnd-bs-5', name:'Stone Beverage',    contact:'Carlos Mendez',phone:'555-0188',     lead_days:3, notes:'Beer + spirits distributor. Weekly delivery.' },
+  { id:'vnd-bs-6', name:'Vintage Wines',     contact:'Lisa Ho',      phone:'555-0166',     lead_days:5, notes:'Wine specialist. Bi-weekly delivery.' },
+];
+
+var BS_INGREDIENTS = [
+  // Proteins
+  { id:'ing-bs-001', name:'Ground Beef 80/20',     category:'Protein',    unit:'lb',     pack_size:10,  pack_unit:'lb',  price:48.00,  vendor_id:'vnd-bs-1', isTCS:true,  storage:'Walk-in Cooler' },
+  { id:'ing-bs-002', name:'Chicken Breast',        category:'Protein',    unit:'lb',     pack_size:40,  pack_unit:'lb',  price:152.00, vendor_id:'vnd-bs-1', isTCS:true,  storage:'Walk-in Cooler' },
+  { id:'ing-bs-003', name:'Salmon Filet',          category:'Protein',    unit:'lb',     pack_size:5,   pack_unit:'lb',  price:62.00,  vendor_id:'vnd-bs-1', isTCS:true,  storage:'Walk-in Cooler' },
+  { id:'ing-bs-004', name:'Bacon',                 category:'Protein',    unit:'lb',     pack_size:15,  pack_unit:'lb',  price:78.00,  vendor_id:'vnd-bs-1', isTCS:true,  storage:'Walk-in Cooler' },
+  // Dairy
+  { id:'ing-bs-010', name:'Cheddar Cheese',        category:'Dairy',      unit:'lb',     pack_size:5,   pack_unit:'lb',  price:24.00,  vendor_id:'vnd-bs-1', isTCS:true,  storage:'Walk-in Cooler' },
+  { id:'ing-bs-011', name:'Mozzarella',            category:'Dairy',      unit:'lb',     pack_size:5,   pack_unit:'lb',  price:22.00,  vendor_id:'vnd-bs-1', isTCS:true,  storage:'Walk-in Cooler' },
+  { id:'ing-bs-012', name:'Heavy Cream',           category:'Dairy',      unit:'qt',     pack_size:1,   pack_unit:'qt',  price:8.50,   vendor_id:'vnd-bs-1', isTCS:true,  storage:'Walk-in Cooler' },
+  { id:'ing-bs-013', name:'Butter',                category:'Dairy',      unit:'lb',     pack_size:1,   pack_unit:'lb',  price:6.20,   vendor_id:'vnd-bs-1', isTCS:true,  storage:'Walk-in Cooler' },
+  // Produce
+  { id:'ing-bs-020', name:'Tomatoes',              category:'Produce',    unit:'lb',     pack_size:25,  pack_unit:'lb',  price:42.00,  vendor_id:'vnd-bs-2', isTCS:false, storage:'Produce Cooler' },
+  { id:'ing-bs-021', name:'Lettuce (Romaine)',     category:'Produce',    unit:'head',   pack_size:24,  pack_unit:'head',price:36.00,  vendor_id:'vnd-bs-2', isTCS:false, storage:'Produce Cooler' },
+  { id:'ing-bs-022', name:'Onions (Yellow)',       category:'Produce',    unit:'lb',     pack_size:50,  pack_unit:'lb',  price:32.00,  vendor_id:'vnd-bs-2', isTCS:false, storage:'Dry Storage' },
+  { id:'ing-bs-023', name:'Potatoes (Russet)',     category:'Produce',    unit:'lb',     pack_size:50,  pack_unit:'lb',  price:28.00,  vendor_id:'vnd-bs-2', isTCS:false, storage:'Dry Storage' },
+  { id:'ing-bs-024', name:'Avocado',               category:'Produce',    unit:'each',   pack_size:60,  pack_unit:'ea',  price:48.00,  vendor_id:'vnd-bs-2', isTCS:false, storage:'Produce Cooler' },
+  { id:'ing-bs-025', name:'Lemons',                category:'Produce',    unit:'each',   pack_size:165, pack_unit:'ea',  price:36.00,  vendor_id:'vnd-bs-2', isTCS:false, storage:'Produce Cooler' },
+  { id:'ing-bs-026', name:'Limes',                 category:'Produce',    unit:'each',   pack_size:200, pack_unit:'ea',  price:32.00,  vendor_id:'vnd-bs-2', isTCS:false, storage:'Produce Cooler' },
+  // Pantry
+  { id:'ing-bs-030', name:'Olive Oil EVOO',        category:'Pantry',     unit:'gal',    pack_size:1,   pack_unit:'gal', price:42.00,  vendor_id:'vnd-bs-1', isTCS:false, storage:'Dry Storage' },
+  { id:'ing-bs-031', name:'Flour AP',              category:'Pantry',     unit:'lb',     pack_size:50,  pack_unit:'lb',  price:24.00,  vendor_id:'vnd-bs-1', isTCS:false, storage:'Dry Storage' },
+  { id:'ing-bs-032', name:'Sugar',                 category:'Pantry',     unit:'lb',     pack_size:50,  pack_unit:'lb',  price:22.00,  vendor_id:'vnd-bs-1', isTCS:false, storage:'Dry Storage' },
+  { id:'ing-bs-033', name:'Salt (Kosher)',         category:'Pantry',     unit:'lb',     pack_size:3,   pack_unit:'lb',  price:4.80,   vendor_id:'vnd-bs-1', isTCS:false, storage:'Dry Storage' },
+  // Bakery
+  { id:'ing-bs-040', name:'Brioche Burger Bun',    category:'Bakery',     unit:'each',   pack_size:48,  pack_unit:'ea',  price:14.40,  vendor_id:'vnd-bs-4', isTCS:false, storage:'Dry Storage' },
+  // Bar — Spirits
+  { id:'ing-bs-050', name:'Bourbon (well)',        category:'Spirits',    unit:'oz',     pack_size:33.8,pack_unit:'oz',  price:24.00,  vendor_id:'vnd-bs-5', isTCS:false, storage:'Liquor Cabinet' },
+  { id:'ing-bs-051', name:'Vodka (well)',          category:'Spirits',    unit:'oz',     pack_size:33.8,pack_unit:'oz',  price:18.00,  vendor_id:'vnd-bs-5', isTCS:false, storage:'Liquor Cabinet' },
+  { id:'ing-bs-052', name:'Tequila (silver)',      category:'Spirits',    unit:'oz',     pack_size:33.8,pack_unit:'oz',  price:28.00,  vendor_id:'vnd-bs-5', isTCS:false, storage:'Liquor Cabinet' },
+  { id:'ing-bs-053', name:'Gin (well)',            category:'Spirits',    unit:'oz',     pack_size:33.8,pack_unit:'oz',  price:22.00,  vendor_id:'vnd-bs-5', isTCS:false, storage:'Liquor Cabinet' },
+  // Bar — Mixers
+  { id:'ing-bs-060', name:'Simple Syrup',          category:'Bar Syrup',  unit:'oz',     pack_size:32,  pack_unit:'oz',  price:4.00,   vendor_id:'vnd-bs-5', isTCS:false, storage:'Bar Cooler' },
+  { id:'ing-bs-061', name:'Lime Juice (fresh)',    category:'Bar Mix',    unit:'oz',     pack_size:32,  pack_unit:'oz',  price:8.00,   vendor_id:'vnd-bs-2', isTCS:false, storage:'Bar Cooler' },
+  { id:'ing-bs-062', name:'Lemon Juice (fresh)',   category:'Bar Mix',    unit:'oz',     pack_size:32,  pack_unit:'oz',  price:8.00,   vendor_id:'vnd-bs-2', isTCS:false, storage:'Bar Cooler' },
+];
+
+var BS_RECIPES = [
+  // ─── PREP / SUB-RECIPES ────────────────────────────
+  {
+    recipe_id:'r-bs-prep-1', name:'Burger Sauce', type:'Sauce', station:'Prep', stationId:'st-prep',
+    menuRole:'sub_recipe', isFinishedPlate:false, status:'active',
+    yield_qty:32, yield_unit:'oz', shelf_life_days:5, hold_temp:'41 or below',
+    line_check_included:true, checkLabel:true, checkTemperature:false,
+    storage_location:['Walk-in Cooler'],
+    ingredients:[],
+    steps:[{ text:'Whisk together mayo, ketchup, mustard, pickle relish.' }],
+  },
+  {
+    recipe_id:'r-bs-prep-2', name:'Caesar Dressing', type:'Sauce', station:'Prep', stationId:'st-prep',
+    menuRole:'sub_recipe', isFinishedPlate:false, status:'active',
+    yield_qty:24, yield_unit:'oz', shelf_life_days:5, hold_temp:'41 or below',
+    line_check_included:true, checkLabel:true, checkTemperature:false,
+    storage_location:['Walk-in Cooler'],
+    ingredients:[],
+    steps:[{ text:'Blend anchovies, garlic, lemon, parmesan, olive oil, egg yolk.' }],
+  },
+  {
+    recipe_id:'r-bs-prep-3', name:'Marinara Sauce', type:'Sauce', station:'Prep', stationId:'st-prep',
+    menuRole:'sub_recipe', isFinishedPlate:false, status:'active',
+    yield_qty:64, yield_unit:'oz', shelf_life_days:7, hold_temp:'41 or below',
+    line_check_included:true, checkLabel:true, checkTemperature:true,
+    cooling_required:true,
+    storage_location:['Walk-in Cooler'],
+    ingredients:[],
+    steps:[{ text:'Sauté onions, garlic, add tomatoes, simmer 90 min, season.' }],
+  },
+  {
+    recipe_id:'r-bs-prep-4', name:'Diced Tomato Mix', type:'Prep', station:'Prep', stationId:'st-prep',
+    menuRole:'prep_item', isFinishedPlate:false, status:'active',
+    yield_qty:5, yield_unit:'lb', shelf_life_days:2, hold_temp:'41 or below',
+    line_check_included:true, checkLabel:true, checkFifo:true,
+    storage_location:['Cold Line'],
+    ingredients:[],
+    steps:[{ text:'Dice 5 lbs tomatoes 1/4 inch. Drain. Hold cold.' }],
+  },
+  // ─── ENTREES ───────────────────────────────────────
+  {
+    recipe_id:'r-bs-1', name:'Burnt Spoon Burger', type:'Entree', station:'Grill', stationId:'st-grill',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'each', shelf_life_days:0, hold_temp:'135 or above',
+    line_check_included:true, checkVisual:true, checkTaste:true, checkTool:true,
+    target_pct:30, menu_price:18.00,
+    storage_location:['Hot Line'],
+    ingredients:[
+      { ingredient_id:'ing-bs-001', qty:8,  unit:'oz' },
+      { ingredient_id:'ing-bs-040', qty:1,  unit:'each' },
+      { ingredient_id:'ing-bs-010', qty:1,  unit:'oz' },
+      { ingredient_id:'ing-bs-021', qty:0.5,unit:'oz' },
+    ],
+    sub_recipes:[{ recipe_id:'r-bs-prep-1', qty:1, unit:'oz' }],
+    steps:[
+      { text:'Form 8oz patty, season both sides.' },
+      { text:'Grill 4 min/side to 155°F internal.' },
+      { text:'Top with cheddar, melt 30 sec.' },
+      { text:'Toast bun, sauce, lettuce, tomato, plate.' },
+    ],
+  },
+  {
+    recipe_id:'r-bs-2', name:'Grilled Salmon', type:'Entree', station:'Grill', stationId:'st-grill',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'each', shelf_life_days:0, hold_temp:'135 or above',
+    line_check_included:true, checkVisual:true, checkTaste:true, checkTool:true,
+    target_pct:30, menu_price:28.00,
+    storage_location:['Hot Line'],
+    ingredients:[
+      { ingredient_id:'ing-bs-003', qty:6, unit:'oz' },
+      { ingredient_id:'ing-bs-030', qty:0.5, unit:'oz' },
+    ],
+    steps:[
+      { text:'Season salmon with salt, brush oil.' },
+      { text:'Grill skin-side down 4 min, flip, 3 min more.' },
+      { text:'Internal 145°F. Plate over rice.' },
+    ],
+  },
+  {
+    recipe_id:'r-bs-3', name:'Caesar Salad', type:'Entree', station:'Salad', stationId:'st-salad',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'each', shelf_life_days:0, hold_temp:'41 or below',
+    line_check_included:true, checkVisual:true, checkFifo:true,
+    target_pct:25, menu_price:14.00,
+    storage_location:['Cold Line'],
+    ingredients:[
+      { ingredient_id:'ing-bs-021', qty:1, unit:'head' },
+    ],
+    sub_recipes:[{ recipe_id:'r-bs-prep-2', qty:2, unit:'oz' }],
+    steps:[
+      { text:'Wash, chop romaine. Toss with dressing.' },
+      { text:'Top with parmesan, croutons, anchovy.' },
+    ],
+  },
+  {
+    recipe_id:'r-bs-4', name:'Chicken Parmesan', type:'Entree', station:'Saute', stationId:'st-saute',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'each', shelf_life_days:0, hold_temp:'135 or above',
+    line_check_included:true, checkVisual:true, checkTaste:true, checkTool:true,
+    target_pct:28, menu_price:24.00,
+    storage_location:['Hot Line'],
+    ingredients:[
+      { ingredient_id:'ing-bs-002', qty:8, unit:'oz' },
+      { ingredient_id:'ing-bs-011', qty:2, unit:'oz' },
+    ],
+    sub_recipes:[{ recipe_id:'r-bs-prep-3', qty:4, unit:'oz' }],
+    steps:[
+      { text:'Bread chicken breast, sauté 4 min/side.' },
+      { text:'Top with marinara + mozzarella, broil 2 min.' },
+      { text:'Plate over pasta with extra sauce.' },
+    ],
+  },
+  {
+    recipe_id:'r-bs-5', name:'BLT Sandwich', type:'Entree', station:'Salad', stationId:'st-salad',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'each', shelf_life_days:0, hold_temp:'41 or below',
+    line_check_included:true, checkVisual:true, checkFifo:true,
+    target_pct:26, menu_price:13.00,
+    storage_location:['Cold Line'],
+    ingredients:[
+      { ingredient_id:'ing-bs-004', qty:3, unit:'oz' },
+      { ingredient_id:'ing-bs-021', qty:0.5, unit:'oz' },
+      { ingredient_id:'ing-bs-020', qty:2, unit:'oz' },
+    ],
+    steps:[{ text:'Toast bread, mayo, layer bacon, lettuce, tomato.' }],
+  },
+  {
+    recipe_id:'r-bs-6', name:'Chicken Tenders', type:'Entree', station:'Fry', stationId:'st-fry',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'each', shelf_life_days:0, hold_temp:'135 or above',
+    line_check_included:true, checkVisual:true, checkTaste:true,
+    target_pct:25, menu_price:14.00,
+    storage_location:['Hot Line'],
+    ingredients:[{ ingredient_id:'ing-bs-002', qty:6, unit:'oz' }],
+    steps:[{ text:'Bread tenders, fry 350°F 4 min, drain, plate.' }],
+  },
+  // ─── SIDES ─────────────────────────────────────────
+  {
+    recipe_id:'r-bs-7', name:'French Fries', type:'Garnish', station:'Fry', stationId:'st-fry',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'each', shelf_life_days:0, hold_temp:'135 or above',
+    line_check_included:true, checkVisual:true,
+    target_pct:18, menu_price:6.00,
+    storage_location:['Hot Line'],
+    ingredients:[{ ingredient_id:'ing-bs-023', qty:6, unit:'oz' }],
+    steps:[{ text:'Fry 6 oz frozen fries 350°F 3-4 min, salt, plate.' }],
+  },
+  {
+    recipe_id:'r-bs-8', name:'Mashed Potatoes', type:'Garnish', station:'Prep', stationId:'st-prep',
+    menuRole:'prep_item', isFinishedPlate:true, status:'active',
+    yield_qty:8, yield_unit:'lb', shelf_life_days:2, hold_temp:'135 or above',
+    line_check_included:true, checkLabel:true, checkTemperature:true, cooling_required:true,
+    target_pct:15, menu_price:5.00,
+    storage_location:['Hot Line'],
+    ingredients:[
+      { ingredient_id:'ing-bs-023', qty:8, unit:'lb' },
+      { ingredient_id:'ing-bs-013', qty:0.5, unit:'lb' },
+      { ingredient_id:'ing-bs-012', qty:1, unit:'qt' },
+    ],
+    steps:[{ text:'Boil potatoes, mash with butter + cream, season.' }],
+  },
+  // ─── COCKTAILS ─────────────────────────────────────
+  {
+    recipe_id:'r-bs-c1', name:'Old Fashioned', type:'Bar', station:'Bar', stationId:'st-bar',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'each', shelf_life_days:0,
+    line_check_included:true,
+    target_pct:18, menu_price:14.00,
+    storage_location:['Bar Cooler'],
+    bar_meta:{ glass:'Rocks', method:'Stir', ice:'Big Cube', garnish:'Orange peel' },
+    ingredients:[
+      { ingredient_id:'ing-bs-050', qty:2, unit:'oz' },
+      { ingredient_id:'ing-bs-060', qty:0.25, unit:'oz' },
+    ],
+    steps:[{ text:'Stir bourbon + simple + bitters with ice. Strain over big cube. Express orange peel.' }],
+  },
+  {
+    recipe_id:'r-bs-c2', name:'Margarita', type:'Bar', station:'Bar', stationId:'st-bar',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'each', shelf_life_days:0,
+    line_check_included:true,
+    target_pct:18, menu_price:13.00,
+    storage_location:['Bar Cooler'],
+    bar_meta:{ glass:'Rocks', method:'Shake', ice:'Cubed', garnish:'Lime wheel + salt rim' },
+    ingredients:[
+      { ingredient_id:'ing-bs-052', qty:2,   unit:'oz' },
+      { ingredient_id:'ing-bs-061', qty:1,   unit:'oz' },
+      { ingredient_id:'ing-bs-060', qty:0.5, unit:'oz' },
+    ],
+    steps:[{ text:'Shake all w/ ice. Strain over fresh ice in salted rocks glass. Lime wheel.' }],
+  },
+  {
+    recipe_id:'r-bs-c3', name:'Vodka Soda', type:'Bar', station:'Bar', stationId:'st-bar',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'each', shelf_life_days:0,
+    line_check_included:true,
+    target_pct:15, menu_price:11.00,
+    storage_location:['Bar Cooler'],
+    bar_meta:{ glass:'Highball', method:'Build', ice:'Cubed', garnish:'Lime wedge' },
+    ingredients:[
+      { ingredient_id:'ing-bs-051', qty:1.5, unit:'oz' },
+      { ingredient_id:'ing-bs-061', qty:0.25,unit:'oz' },
+    ],
+    steps:[{ text:'Build over ice in highball. Top w/ soda. Lime.' }],
+  },
+  {
+    recipe_id:'r-bs-c4', name:'Gimlet', type:'Bar', station:'Bar', stationId:'st-bar',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'each', shelf_life_days:0,
+    line_check_included:true,
+    target_pct:18, menu_price:13.00,
+    storage_location:['Bar Cooler'],
+    bar_meta:{ glass:'Coupe', method:'Shake', ice:'None (strained)', garnish:'Lime wheel' },
+    ingredients:[
+      { ingredient_id:'ing-bs-053', qty:2,   unit:'oz' },
+      { ingredient_id:'ing-bs-061', qty:0.75,unit:'oz' },
+      { ingredient_id:'ing-bs-060', qty:0.5, unit:'oz' },
+    ],
+    steps:[{ text:'Shake hard with ice. Double-strain into chilled coupe.' }],
+  },
+  // ─── BEER ──────────────────────────────────────────
+  {
+    recipe_id:'r-bs-b1', name:'Stone IPA', type:'Beer', station:'Bar', stationId:'st-bar',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'pour', shelf_life_days:0,
+    line_check_included:true,
+    target_pct:22, menu_price:8.00,
+    storage_location:['Keg Walk-in'],
+    product_info:{ style:'IPA', brewer:'Stone Brewing', abv:6.9, format:'Draft', serving_size:16, cost_per_keg:200, keg_size:'1/2 barrel (15.5 gal)', yield_factor:92 },
+    ingredients:[],
+  },
+  {
+    recipe_id:'r-bs-b2', name:'Modelo Especial', type:'Beer', station:'Bar', stationId:'st-bar',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'bottle', shelf_life_days:0,
+    line_check_included:true,
+    target_pct:25, menu_price:6.00,
+    storage_location:['Beer Bottle Cooler'],
+    product_info:{ style:'Lager', brewer:'Grupo Modelo', abv:4.4, format:'Bottle', serving_size:12, cost_per_case:42, case_units:24 },
+    ingredients:[],
+  },
+  {
+    recipe_id:'r-bs-b3', name:'Sierra Nevada Pale Ale', type:'Beer', station:'Bar', stationId:'st-bar',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'pour', shelf_life_days:0,
+    line_check_included:true,
+    target_pct:22, menu_price:7.00,
+    storage_location:['Keg Walk-in'],
+    product_info:{ style:'Pale Ale', brewer:'Sierra Nevada', abv:5.6, format:'Draft', serving_size:16, cost_per_keg:175, keg_size:'1/2 barrel (15.5 gal)', yield_factor:92 },
+    ingredients:[],
+  },
+  // ─── WINE ──────────────────────────────────────────
+  {
+    recipe_id:'r-bs-w1', name:'House Cabernet', type:'Wine', station:'Bar', stationId:'st-bar',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'glass', shelf_life_days:0,
+    line_check_included:true,
+    target_pct:22, menu_price:11.00,
+    storage_location:['Wine Fridge'],
+    product_info:{ varietal:'Cabernet Sauvignon', winery:'Bogle', region:'California', vintage:2022, pour_size:6, bottle_cost:14 },
+    ingredients:[],
+  },
+  {
+    recipe_id:'r-bs-w2', name:'House Chardonnay', type:'Wine', station:'Bar', stationId:'st-bar',
+    menuRole:'finished_plate', isFinishedPlate:true, status:'active',
+    yield_qty:1, yield_unit:'glass', shelf_life_days:0,
+    line_check_included:true,
+    target_pct:22, menu_price:10.00,
+    storage_location:['Wine Fridge'],
+    product_info:{ varietal:'Chardonnay', winery:'Kendall-Jackson', region:'California', vintage:2023, pour_size:6, bottle_cost:13 },
+    ingredients:[],
+  },
+];
+
+var BS_BOOKS = [
+  { id:'bk-bs-1', name:'Dinner Menu',     description:'Main service menu',      seeded_by_module:false },
+  { id:'bk-bs-2', name:'Cocktail List',   description:'Bar program',            seeded_by_module:'liquor' },
+  { id:'bk-bs-3', name:'Beer Menu',       description:'Draft + bottle',         seeded_by_module:'beer' },
+  { id:'bk-bs-4', name:'Wine List',       description:'By the glass + bottle',  seeded_by_module:'wine' },
+];
+
+// Tag recipes to books
+var BS_BOOK_TAGS = {
+  'bk-bs-1': ['r-bs-1','r-bs-2','r-bs-3','r-bs-4','r-bs-5','r-bs-6','r-bs-7','r-bs-8'],
+  'bk-bs-2': ['r-bs-c1','r-bs-c2','r-bs-c3','r-bs-c4'],
+  'bk-bs-3': ['r-bs-b1','r-bs-b2','r-bs-b3'],
+  'bk-bs-4': ['r-bs-w1','r-bs-w2'],
+};
+
+var BS_STATION_MAPS = [
+  {
+    map_id:'sm-bs-grill', station_name:'Grill', rows:2, cols:3,
+    slots:[
+      { row:0, col:0, item_type:'recipe', recipe_id:'r-bs-1',  label:'Burger',  slot_position:'A1' },
+      { row:0, col:1, item_type:'recipe', recipe_id:'r-bs-2',  label:'Salmon',  slot_position:'A2' },
+      { row:0, col:2, item_type:'empty', slot_position:'A3' },
+      { row:1, col:0, item_type:'recipe', recipe_id:'r-bs-prep-3', label:'Marinara', slot_position:'B1' },
+      { row:1, col:1, item_type:'empty', slot_position:'B2' },
+      { row:1, col:2, item_type:'empty', slot_position:'B3' },
+    ],
+  },
+  {
+    map_id:'sm-bs-salad', station_name:'Salad', rows:2, cols:3,
+    slots:[
+      { row:0, col:0, item_type:'recipe', recipe_id:'r-bs-3', label:'Caesar', slot_position:'A1' },
+      { row:0, col:1, item_type:'recipe', recipe_id:'r-bs-5', label:'BLT',    slot_position:'A2' },
+      { row:0, col:2, item_type:'recipe', recipe_id:'r-bs-prep-4', label:'Tomato', slot_position:'A3' },
+      { row:1, col:0, item_type:'empty', slot_position:'B1' },
+      { row:1, col:1, item_type:'empty', slot_position:'B2' },
+      { row:1, col:2, item_type:'empty', slot_position:'B3' },
+    ],
+  },
+  {
+    map_id:'sm-bs-bar', station_name:'Bar', rows:2, cols:4,
+    slots:[
+      { row:0, col:0, item_type:'recipe', recipe_id:'r-bs-c1', label:'Old Fash', slot_position:'A1' },
+      { row:0, col:1, item_type:'recipe', recipe_id:'r-bs-c2', label:'Marg',    slot_position:'A2' },
+      { row:0, col:2, item_type:'recipe', recipe_id:'r-bs-c3', label:'V/Soda',  slot_position:'A3' },
+      { row:0, col:3, item_type:'recipe', recipe_id:'r-bs-c4', label:'Gimlet',  slot_position:'A4' },
+      { row:1, col:0, item_type:'recipe', recipe_id:'r-bs-b1', label:'IPA',     slot_position:'B1' },
+      { row:1, col:1, item_type:'recipe', recipe_id:'r-bs-b3', label:'Pale',    slot_position:'B2' },
+      { row:1, col:2, item_type:'recipe', recipe_id:'r-bs-w1', label:'Cab',     slot_position:'B3' },
+      { row:1, col:3, item_type:'recipe', recipe_id:'r-bs-w2', label:'Chard',   slot_position:'B4' },
+    ],
+  },
+];
+
+/**
+ * seedBurntSpoonDemo(reset)
+ * Loads the full demo restaurant. Reset=true wipes everything first.
+ */
+function seedBurntSpoonDemo(reset) {
+  var msg = reset
+    ? 'WIPE all current data and load The Burnt Spoon — full demo restaurant (12 employees, 30 recipes, 27 ingredients, 6 vendors, station maps, 12 weeks of sales/labor history)?'
+    : 'Load The Burnt Spoon demo on top of existing data? (Existing recipes/employees with same IDs are kept; new ones added.)';
+  if (!confirm(msg)) return;
+
+  if (reset) {
+    DB.recipes = [];
+    DB.ingredients = [];
+    DB.vendors = [];
+    DB.employees = [];
+    DB.dailySales = {};
+    DB.laborLog = [];
+    DB.schedule = {};
+    DB.scheduleProjections = {};
+    DB.stationMaps = [];
+    DB.dailyLogs = { temp:[], cooling:[], cleaning:[], receiving:[] };
+    DB.lineChecks = {};
+    DB.inspectionAnswers = [];
+    if (DB.setupProfile) {
+      DB.setupProfile.recipeBooks = [];
+    }
+  }
+
+  // Profile
+  Object.assign(DB.restaurantProfile || (DB.restaurantProfile = {}), BS_PROFILE);
+
+  // Setup profile (stations from default seeded list, plus enabled bev modules)
+  if (!DB.setupProfile) DB.setupProfile = {};
+  DB.setupProfile.beverageModules = ['liquor','beer','wine'];
+  if (!Array.isArray(DB.setupProfile.recipeBooks)) DB.setupProfile.recipeBooks = [];
+  BS_BOOKS.forEach(function(book) {
+    if (!DB.setupProfile.recipeBooks.some(function(b){ return b.id === book.id; })) {
+      DB.setupProfile.recipeBooks.push(JSON.parse(JSON.stringify(book)));
+    }
+  });
+
+  // Vendors
+  if (!Array.isArray(DB.vendors)) DB.vendors = [];
+  BS_VENDORS.forEach(function(v) {
+    if (!DB.vendors.some(function(x){ return x.id === v.id; })) {
+      DB.vendors.push(JSON.parse(JSON.stringify(v)));
+    }
+  });
+
+  // Ingredients
+  if (!Array.isArray(DB.ingredients)) DB.ingredients = [];
+  BS_INGREDIENTS.forEach(function(i) {
+    if (!DB.ingredients.some(function(x){ return x.id === i.id; })) {
+      DB.ingredients.push(JSON.parse(JSON.stringify(i)));
+    }
+  });
+
+  // Recipes — tag with book_ids per BS_BOOK_TAGS
+  if (!Array.isArray(DB.recipes)) DB.recipes = [];
+  BS_RECIPES.forEach(function(r) {
+    if (DB.recipes.some(function(x){ return x.recipe_id === r.recipe_id; })) return;
+    var clone = JSON.parse(JSON.stringify(r));
+    // Find which books contain this recipe
+    var bookIds = [];
+    var bookNames = [];
+    Object.keys(BS_BOOK_TAGS).forEach(function(bookId) {
+      if (BS_BOOK_TAGS[bookId].indexOf(r.recipe_id) >= 0) {
+        bookIds.push(bookId);
+        var bk = BS_BOOKS.find(function(b){ return b.id === bookId; });
+        if (bk) bookNames.push(bk.name);
+      }
+    });
+    clone.book_ids = bookIds;
+    clone.recipe_books = bookNames;
+    clone.created_at = new Date().toISOString();
+    if (!clone.target_pct) clone.target_pct = 30;
+    if (clone.ingredients == null) clone.ingredients = [];
+    if (clone.steps == null) clone.steps = [];
+    if (clone.sub_recipes == null) clone.sub_recipes = [];
+    DB.recipes.push(clone);
+  });
+
+  // Recalc costs after recipes loaded
+  if (typeof recalcAllRecipeCosts === 'function') recalcAllRecipeCosts();
+
+  // Employees
+  if (!Array.isArray(DB.employees)) DB.employees = [];
+  BS_EMPLOYEES.forEach(function(e) {
+    if (!DB.employees.some(function(x){ return x.id === e.id; })) {
+      DB.employees.push(JSON.parse(JSON.stringify(e)));
+    }
+  });
+
+  // Station maps
+  if (!Array.isArray(DB.stationMaps)) DB.stationMaps = [];
+  BS_STATION_MAPS.forEach(function(m) {
+    if (!DB.stationMaps.some(function(x){ return x.map_id === m.map_id; })) {
+      DB.stationMaps.push(JSON.parse(JSON.stringify(m)));
+    }
+  });
+
+  // Sales + labor (re-use existing helper)
+  if (typeof generateDemoSalesAndLabor === 'function') {
+    var generated = generateDemoSalesAndLabor();
+    Object.keys(generated.sales).forEach(function(date) {
+      if (reset || !DB.dailySales[date]) {
+        var s = generated.sales[date];
+        // Split bev across coffee/beer/wine/liquor for testing P&L breakdown
+        s.beer    = Math.round(s.bev * 0.40);
+        s.wine    = Math.round(s.bev * 0.25);
+        s.liquor  = Math.round(s.bev * 0.30);
+        s.coffee  = Math.round(s.bev * 0.05);
+        DB.dailySales[date] = s;
+      }
+    });
+    generated.labor.forEach(function(entry) {
+      if (reset || !DB.laborLog.some(function(e){ return e.labor_id === entry.labor_id; })) {
+        DB.laborLog.push(entry);
+      }
+    });
+  }
+
+  // Add a stuck shift (yesterday, no clock-out) for Time Edits testing
+  var yest = new Date(); yest.setDate(yest.getDate() - 1);
+  var yestStr = yest.toISOString().slice(0,10);
+  DB.laborLog.push({
+    labor_id: 'lb-stuck-demo-1',
+    date: yestStr,
+    employee_id: 'emp-bs-3',
+    employee: 'Marcus Kim',
+    role: 'Line Cook',
+    clock_in: '15:00',
+    clock_out: '',
+    hours: 0,
+    rate: 19.00,
+    total: 0,
+    notes: 'demo - stuck (forgot to clock out)',
+  });
+
+  // Persist all
+  ['saveProfile','saveEmployees','saveSales','saveLabor','saveSchedule',
+   'saveRecipes','saveIngredients','saveVendors','saveStationMaps',
+   'saveSetupProfile','saveLogs','saveLineChecks','saveInspectionAnswers']
+    .forEach(function(fn) {
+      try { if (typeof window[fn] === 'function') window[fn](); } catch(e) {}
+    });
+
+  if (typeof showToast === 'function') {
+    showToast('\u2713 The Burnt Spoon loaded \u2014 ' + BS_RECIPES.length + ' recipes, ' +
+              BS_INGREDIENTS.length + ' ingredients, ' + BS_EMPLOYEES.length + ' employees', 'success');
+  }
+  if (typeof drawMain === 'function') drawMain();
+}
+
+
 function seedDemoData(reset) {
   if (reset && !confirm('This will WIPE all existing sales, labor, schedule, and employees, then load 12 weeks of demo data. Recipes, ingredients, and settings stay. Continue?')) {
     return;
@@ -26551,11 +27887,11 @@ function debug() {
   <div class="slabel" style="margin-bottom:8px">DEMO DATA</div>
   <div style="font-size:12px;color:var(--text3);margin-bottom:10px">12 weeks of realistic sales + labor + 7 employees. Use to test smart features that require history (variance banner, target suggestions, pre-fill).</div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <button class="btn btn-teal btn-sm" onclick="seedDemoData(false)">🌱 Add Demo Data</button>
-    <button class="btn btn-ghost btn-sm" onclick="seedDemoData(true)">↻ Reset to Demo</button>
+    <button class="btn btn-primary btn-sm" onclick="seedBurntSpoonDemo(true)">🍴 Load The Burnt Spoon (Full Demo)</button>
+    <button class="btn btn-teal btn-sm" onclick="seedDemoData(false)">🌱 Quick Sales+Labor Only</button>
     <button class="btn btn-danger btn-sm" onclick="wipeAllDemoAndData()">☢ Wipe All Data</button>
   </div>
-  <div style="font-size:10px;color:var(--text3);margin-top:8px;font-style:italic">Add Demo: keeps existing recipes/settings, adds demo data on top. Reset: wipes sales/labor/employees first. Wipe All: nuclear, reloads.</div>
+  <div style="font-size:10px;color:var(--text3);margin-top:8px;font-style:italic"><strong>The Burnt Spoon</strong> wipes everything and loads a full restaurant: 12 employees (2 managers), 27 ingredients, 6 vendors, 30 recipes (food/cocktails/beer/wine), 3 station maps, 4 books, 12 weeks of sales+labor history, plus a stuck shift for time-edit testing. <strong>Quick</strong>: smaller — just sales/labor over existing data. <strong>Wipe</strong>: reload from scratch.</div>
 </div>
 <div class="metrics" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px">
   <div class="mcard"><div class="mlabel">ACTIVE RECIPES</div><div class="mval teal">${DB.recipes.filter(r=>r.status==='active').length}</div></div>
