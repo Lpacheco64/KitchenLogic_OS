@@ -837,7 +837,7 @@ a,button,.btn,.ni,.nb-divider-clickable,.imp-btn,.rab,.setup-opt,.binder-card{cu
 </div>
 <div id="sb"></div>
 <div id="main"></div>
-<div data-build-id="build-070515" style="position:fixed;bottom:6px;left:6px;font-family:monospace;font-size:9px;color:rgba(255,255,255,.25);pointer-events:none;z-index:99">build-070515</div>
+<div data-build-id="build-000003" style="position:fixed;bottom:6px;left:6px;font-family:monospace;font-size:9px;color:rgba(255,255,255,.25);pointer-events:none;z-index:99">build-000003</div>
 <div id="kl-print-doc"></div>
 
 
@@ -4747,9 +4747,19 @@ function savePosMappings(){ try { safeSet(LS.POS_MAPPINGS, DB.posMappings); } ca
 // ── Bucket detection ─────────────────────────────────────────────────
 // Maps POS category names to food | beverage | bar | other
 var POS_BUCKET_KEYWORDS = {
-  food:      ['food','entree','appetizer','starter','salad','soup','sandwich','burger','pizza','pasta','dessert','snack','meal','kitchen','main','side','breakfast','lunch','dinner','brunch'],
-  beverage:  ['coffee','espresso','tea','juice','soda','water','lemonade','smoothie','shake','non-alc','soft drink','beverage','drink','bev'],
-  bar:       ['beer','wine','cocktail','spirits','liquor','alcohol','bar','draft','bottle','shot','mixed','cider','sake','whiskey','vodka','gin','rum','tequila'],
+  // Per-module buckets — order matters! Most specific first.
+  // Coffee category — espresso drinks, coffee, tea
+  coffee:    ['coffee','espresso','latte','cappuccino','mocha','americano','macchiato','cortado','flat white','tea','chai','matcha'],
+  // Beer category — draft, bottle, can
+  beer:      ['beer','draft','draught','ipa','lager','pilsner','stout','porter','ale','cider','modelo','corona','heineken','stella','budweiser','bud light','michelob','coors','miller','blue moon','guinness','pacifico','sam adams'],
+  // Wine category — by glass, by bottle
+  wine:      ['wine','cabernet','merlot','chardonnay','sauvignon','pinot','rosé','riesling','prosecco','champagne','sparkling wine','red wine','white wine','wines','rose wine'],
+  // Liquor / cocktails — spirits and mixed drinks
+  liquor:    ['cocktail','spirits','liquor','alcohol','shot','mixed','sake','whiskey','bourbon','scotch','vodka','gin','rum','tequila','mezcal','margarita','martini','old fashioned','manhattan','negroni','mule','smash'],
+  // Non-alc beverage (only if nothing more specific matched)
+  beverage:  ['juice','soda','water','lemonade','smoothie','shake','non-alc','soft drink','beverage','drink','bev','soda water','sparkling water'],
+  // Food (catch-all for kitchen items)
+  food:      ['food','entree','appetizer','starter','salad','soup','sandwich','burger','pizza','pasta','dessert','snack','meal','kitchen','main','side','breakfast','lunch','dinner','brunch','plate','bowl'],
 };
 
 function detectSalesBucket(categoryStr) {
@@ -4761,7 +4771,9 @@ function detectSalesBucket(categoryStr) {
       if (cat.indexOf(keywords[i]) >= 0) return bucket;
     }
   }
-  return 'other';
+  // Phase 14f: unmatched items default to food (most common in restaurants)
+  // Operators can review per-item routing in the importer preview if they want
+  return 'food';
 }
 
 // ── Aggregate salesLog into dailySales for a given date ──────────────
@@ -4771,24 +4783,43 @@ function aggregateSalesLogToDaily(date) {
   var rows = (DB.salesLog||[]).filter(function(r){ return r.date===date; });
   if (!rows.length) return; // nothing to aggregate
 
-  var total = 0, food = 0, bev = 0, bar = 0, covers = 0;
+  // Phase 14f: per-module aggregation for P&L breakdown
+  var total = 0, food = 0, beverage = 0, bar = 0;
+  var coffee = 0, beer = 0, wine = 0, liquor = 0;
   rows.forEach(function(r) {
-    total += (r.net_sales||0);
-    if      (r.bucket==='food')     food += (r.net_sales||0);
-    else if (r.bucket==='beverage') bev  += (r.net_sales||0);
-    else if (r.bucket==='bar')      bar  += (r.net_sales||0);
+    var amt = r.net_sales || 0;
+    total += amt;
+    switch (r.bucket) {
+      case 'food':     food     += amt; break;
+      case 'coffee':   coffee   += amt; break;
+      case 'beer':     beer     += amt; break;
+      case 'wine':     wine     += amt; break;
+      case 'liquor':   liquor   += amt; break;
+      case 'beverage': beverage += amt; break;
+      case 'bar':      bar      += amt; break;  // legacy bucket
+    }
   });
+  // Roll-up: total beverage = beverage (non-alc) + coffee + bar = beer + wine + liquor + legacy bar
+  var totalBev    = beverage + coffee;
+  var totalAlc    = beer + wine + liquor + bar;
+  var combinedBev = totalBev + totalAlc;
 
   // Merge into dailySales — preserve existing manual covers entry
   var existing = (DB.dailySales||{})[date] || {};
   DB.dailySales[date] = {
-    total:      round2(total),
-    food:       food  > 0 ? round2(food)  : (existing.food  || null),
-    beverage:   bev   > 0 ? round2(bev)   : (existing.beverage || null),
-    bar:        bar   > 0 ? round2(bar)   : (existing.bar   || null),
-    covers:     existing.covers || null,
-    entered_at: new Date().toISOString(),
-    source:     rows[0].source || 'csv',
+    total:       round2(total),
+    food:        food     > 0 ? round2(food)     : (existing.food     || null),
+    beverage:    combinedBev > 0 ? round2(combinedBev) : (existing.beverage || null),
+    // Per-module breakdown (Phase 14f) — feeds P&L bev cost rows
+    coffee:      coffee   > 0 ? round2(coffee)   : (existing.coffee   || null),
+    beer:        beer     > 0 ? round2(beer)     : (existing.beer     || null),
+    wine:        wine     > 0 ? round2(wine)     : (existing.wine     || null),
+    liquor:      liquor   > 0 ? round2(liquor)   : (existing.liquor   || null),
+    // Legacy bar field for backward compat (non-itemized "Bar" bucket)
+    bar:         bar      > 0 ? round2(bar)      : (existing.bar      || null),
+    covers:      existing.covers || null,
+    entered_at:  new Date().toISOString(),
+    source:      rows[0].source || 'csv',
     last_import: new Date().toISOString(),
   };
   saveSales();
@@ -4993,13 +5024,21 @@ function parsePOScsv(csvText, date, source) {
     });
   }
 
+  function sumBucket(b) {
+    return round2(rows.filter(function(r){ return r.bucket===b; }).reduce(function(s,r){ return s+(r.net_sales||0); },0));
+  }
   var summary = {
     rows:     rows.length,
     skipped:  skipped,
     total:    round2(rows.reduce(function(s,r){ return s+(r.net_sales||0); },0)),
-    food:     round2(rows.filter(function(r){ return r.bucket==='food';     }).reduce(function(s,r){ return s+(r.net_sales||0); },0)),
-    beverage: round2(rows.filter(function(r){ return r.bucket==='beverage'; }).reduce(function(s,r){ return s+(r.net_sales||0); },0)),
-    bar:      round2(rows.filter(function(r){ return r.bucket==='bar';      }).reduce(function(s,r){ return s+(r.net_sales||0); },0)),
+    food:     sumBucket('food'),
+    coffee:   sumBucket('coffee'),
+    beer:     sumBucket('beer'),
+    wine:     sumBucket('wine'),
+    liquor:   sumBucket('liquor'),
+    beverage: sumBucket('beverage'),
+    bar:      sumBucket('bar'),       // legacy lump
+    other:    sumBucket('other'),
     dates:    [...new Set(rows.map(function(r){ return r.date; }))].sort(),
   };
 
@@ -5220,10 +5259,15 @@ function previewPOSCsv() {
     + '<div style="font-weight:600;color:var(--teal);margin-bottom:6px">✓ ' + s.rows + ' items found — ready to import</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">'
       + '<div>Total sales: <strong>$' + s.total.toFixed(2) + '</strong></div>'
-      + (s.food   ? '<div>Food: <strong>$' + s.food.toFixed(2) + '</strong></div>'     : '')
-      + (s.beverage?'<div>Beverage: <strong>$' + s.beverage.toFixed(2) + '</strong></div>':'')
-      + (s.bar    ? '<div>Bar: <strong>$' + s.bar.toFixed(2) + '</strong></div>'       : '')
       + '<div>Date: <strong>' + s.dates.join(', ') + '</strong></div>'
+      + (s.food    ? '<div>Food: <strong>$' + s.food.toFixed(2) + '</strong></div>' : '')
+      + (s.coffee  ? '<div>Coffee: <strong>$' + s.coffee.toFixed(2) + '</strong></div>' : '')
+      + (s.beer    ? '<div>Beer: <strong>$' + s.beer.toFixed(2) + '</strong></div>' : '')
+      + (s.wine    ? '<div>Wine: <strong>$' + s.wine.toFixed(2) + '</strong></div>' : '')
+      + (s.liquor  ? '<div>Liquor: <strong>$' + s.liquor.toFixed(2) + '</strong></div>' : '')
+      + (s.beverage? '<div>Non-Alc: <strong>$' + s.beverage.toFixed(2) + '</strong></div>' : '')
+      + (s.bar     ? '<div>Bar (mixed): <strong>$' + s.bar.toFixed(2) + '</strong></div>' : '')
+      + (s.other   ? '<div>Other/uncategorized: <strong>$' + s.other.toFixed(2) + '</strong></div>' : '')
     + '</div>'
   + '</div>';
 }
@@ -5242,9 +5286,15 @@ function commitPOSImport() {
   var s = result.summary;
   var modal = document.getElementById('_pos_modal'); if (modal) modal.remove();
   drawMain();
-  successToast(s.rows + ' items imported · $' + s.total.toFixed(0) + ' total sales'
-    + (s.food ? ' · $'+s.food.toFixed(0)+' food' : '')
-    + (s.beverage ? ' · $'+s.beverage.toFixed(0)+' bev' : ''));
+  var toastParts = [];
+  if (s.food)     toastParts.push('$' + s.food.toFixed(0) + ' food');
+  if (s.coffee)   toastParts.push('$' + s.coffee.toFixed(0) + ' coffee');
+  if (s.beer)     toastParts.push('$' + s.beer.toFixed(0) + ' beer');
+  if (s.wine)     toastParts.push('$' + s.wine.toFixed(0) + ' wine');
+  if (s.liquor)   toastParts.push('$' + s.liquor.toFixed(0) + ' liquor');
+  if (s.beverage) toastParts.push('$' + s.beverage.toFixed(0) + ' non-alc');
+  successToast(s.rows + ' items · $' + s.total.toFixed(0) + ' total'
+    + (toastParts.length ? ' · ' + toastParts.join(', ') : ''));
 }
 
 
@@ -21213,12 +21263,30 @@ function setup() {
       {name:'Chemical Storage', ico:'&#x26A0;', desc:'Cleaning chemicals &#x2014; separate from food'},
     ];
     const currentStorageNames = (getStorageTypes()).map(t=>t.name);
+    // Phase 14g: build "Your Walk Order" preview showing current count order
+    var walkOrderHtml = currentStorageNames.length > 0
+      ? '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-bottom:14px">'
+          + '<div style="font-size:10px;color:var(--text3);font-family:monospace;letter-spacing:1px;margin-bottom:6px">YOUR COUNT WALK ORDER</div>'
+          + '<div style="display:flex;flex-wrap:wrap;gap:6px">'
+            + currentStorageNames.map(function(n, i) {
+                return '<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:var(--bg3);border-radius:12px;font-size:11px;color:var(--text2)">'
+                  + '<strong style="color:var(--orange);font-family:monospace">' + (i+1) + '</strong> ' + n
+                + '</span>';
+              }).join('')
+          + '</div>'
+          + '<div style="font-size:10px;color:var(--text3);margin-top:6px;font-style:italic">Items in your inventory will be sorted in this order on count sheets.</div>'
+        + '</div>'
+      : '';
     return `<div style="padding-top:20px"><div class="setup-card">
       ${progressBar}<div class="setup-progress">${dots}</div>
       <div style="margin-bottom:4px">${sb(hasStorage, hasStorage?getStorageTypes().length+' areas':'')}</div>
       <div class="setup-step-label">STEP 4 OF ${TOTAL_STEPS} &middot; STORAGE AREAS</div>
       <div class="setup-title">What storage areas do you have?</div>
-      <div class="setup-sub">Check all that apply. These become backup storage choices for recipes &mdash; used for prep labels, walk-in routing, and inventory location.</div>
+      <div class="setup-sub">Check all that apply, <strong>in the order you walk your kitchen during a count</strong>. Items will be ordered the same way on count sheets &mdash; so a count goes shelf-to-shelf, not bouncing across the kitchen.</div>
+      <div style="background:rgba(45,212,191,.06);border-left:3px solid var(--teal);padding:10px 14px;margin-bottom:14px;border-radius:4px;font-size:11px;color:var(--text2);line-height:1.5">
+        <strong style="color:var(--teal)">Why this matters:</strong> KitchenLogic counts inventory the way you walk your kitchen. The order you check below sets the order on count sheets &mdash; making counts faster, reducing missed items, and helping calculate true food cost.
+      </div>
+      ${walkOrderHtml}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px">
         ${STORAGE_DEFAULTS.map(s=>{
           const sel = currentStorageNames.includes(s.name);
@@ -21790,6 +21858,60 @@ function setupToggleStorage(name, checked) {
   saveSetupProfile();
 }
 
+
+
+/**
+ * syncSetupStorageToInventory()
+ * Bridge: copies wizard's DB.setupProfile.storage[] into Phase 14g DB.storageAreas[]
+ * Preserves count_order based on the order they were added in the wizard.
+ * Called whenever wizard storage is modified.
+ */
+function syncSetupStorageToInventory() {
+  if (!Array.isArray(DB.setupProfile && DB.setupProfile.storage)) return;
+  if (!Array.isArray(DB.storageAreas)) DB.storageAreas = [];
+  // Map each wizard storage area to a Phase 14g storage area
+  // Use stable IDs so re-running doesn't create duplicates
+  DB.setupProfile.storage.forEach(function(s, idx) {
+    if (!s.name) return;
+    var slug = 'sa-' + s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g,'');
+    var existing = DB.storageAreas.find(function(a){ return a.id === slug; });
+    if (!existing) {
+      // Pick an icon based on name hint
+      var iconMap = {
+        'walk-in cooler':'\u2744\uFE0F', 'walk in cooler':'\u2744\uFE0F',
+        'freezer':'\u2744\uFE0F', 'walk-in freezer':'\u2744\uFE0F',
+        'reach-in':'\u{1F9CA}', 'lowboy':'\u{1F9CA}',
+        'cold line':'\u{1F37D}', 'salad':'\u{1F96C}',
+        'hot line':'\u{1F525}', 'grill':'\u{1F525}',
+        'dry storage':'\u{1F4E6}', 'pantry':'\u{1F9F3}',
+        'bar':'\u{1F37A}', 'beer':'\u{1F37A}', 'liquor':'\u{1F943}', 'wine':'\u{1F377}',
+        'coffee':'\u2615', 'chemical':'\u26A0',
+      };
+      var ico = '\u{1F4E6}';
+      Object.keys(iconMap).forEach(function(k){
+        if (s.name.toLowerCase().indexOf(k) >= 0) ico = iconMap[k];
+      });
+      DB.storageAreas.push({
+        id:          slug,
+        name:        s.name,
+        icon:        ico,
+        count_order: idx + 1,
+        temp_range:  '',
+        shelves:     (s.locations || []).map(function(l){ return l.name; }),
+      });
+    } else {
+      // Update count_order to reflect wizard ordering
+      existing.count_order = idx + 1;
+      // Sync shelves if wizard added more
+      if (Array.isArray(s.locations) && s.locations.length) {
+        existing.shelves = s.locations.map(function(l){ return l.name; });
+      }
+    }
+  });
+  // Save
+  if (typeof saveStorageAreas === 'function') saveStorageAreas();
+}
+
 function setupAddCustomStorage() {
   var inp = document.getElementById('setup-new-storage');
   var name = inp ? inp.value.trim() : '';
@@ -21804,6 +21926,7 @@ function setupAddCustomStorage() {
   });
   DB.setupProfile.storage_areas = DB.setupProfile.storage.map(function(t){ return t.name; });
   saveSetupProfile();
+  if (typeof syncSetupStorageToInventory === 'function') syncSetupStorageToInventory();
   if (inp) inp.value = '';
   drawMain.preserveScroll = true; drawMain();
   showToast(name + ' added');
@@ -29425,166 +29548,1739 @@ function setIngCaseSize(ingId, size) {
 // ══════════════════════════════════════════════════════════════════════
 // inventory() — MAIN PAGE FUNCTION
 // ══════════════════════════════════════════════════════════════════════
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE 14g — INVENTORY ARCHITECTURE
+   Sheet-to-shelf counts on 15th + last day, invoice parser,
+   theoretical-vs-actual variance, automatic reorder suggestions.
+═══════════════════════════════════════════════════════════ */
+
+/**
+ * DEFAULT_STORAGE_AREAS
+ * Industry-standard storage zones, ordered by typical kitchen walking pattern.
+ * Operator can override / reorder in setup wizard.
+ */
+var DEFAULT_STORAGE_AREAS = [
+  { id:'sa-walkin-cooler',  name:'Walk-In Cooler',   icon:'\u2744\uFE0F', count_order:1, temp_range:'33-41\u00B0F', shelves:['Top Shelf','Middle Shelf','Bottom Shelf','Floor'] },
+  { id:'sa-walkin-freezer', name:'Walk-In Freezer',  icon:'\u2744\uFE0F', count_order:2, temp_range:'\u22640\u00B0F',  shelves:['Top','Middle','Bottom'] },
+  { id:'sa-reach-in',       name:'Reach-In Cooler',  icon:'\u{1F9CA}',    count_order:3, temp_range:'\u226441\u00B0F',  shelves:['Top','Middle','Bottom'] },
+  { id:'sa-cold-line',      name:'Cold Line',        icon:'\u{1F37D}',    count_order:4, temp_range:'\u226441\u00B0F',  shelves:['Top Rail','Bottom Wells','Lowboy'] },
+  { id:'sa-hot-line',       name:'Hot Line',         icon:'\u{1F525}',    count_order:5, temp_range:'\u2265135\u00B0F', shelves:['Steam Table','Sauce Holds','Lowboy'] },
+  { id:'sa-dry-storage',    name:'Dry Storage',      icon:'\u{1F4E6}',    count_order:6, temp_range:'ambient',          shelves:['Shelf A','Shelf B','Shelf C','Floor'] },
+  { id:'sa-bar-cooler',     name:'Bar Cooler',       icon:'\u{1F37A}',    count_order:7, temp_range:'\u226441\u00B0F',  shelves:['Top','Middle','Bottom'] },
+  { id:'sa-liquor-cabinet', name:'Liquor Cabinet',   icon:'\u{1F943}',    count_order:8, temp_range:'ambient',          shelves:['Top Shelf','Middle Shelf','Bottom Shelf'] },
+  { id:'sa-wine-storage',   name:'Wine Storage',     icon:'\u{1F377}',    count_order:9, temp_range:'50-55\u00B0F',     shelves:['Reds','Whites','Sparkling'] },
+  { id:'sa-keg-walkin',     name:'Keg Walk-In',      icon:'\u{1F37A}',    count_order:10,temp_range:'\u226438\u00B0F',  shelves:['Tap Lines','Backup Kegs'] },
+];
+
+/**
+ * getStorageAreas()
+ * Returns operator's configured storage areas, or defaults if none set.
+ */
+function getStorageAreas() {
+  if (!Array.isArray(DB.storageAreas) || DB.storageAreas.length === 0) {
+    return DEFAULT_STORAGE_AREAS.slice();
+  }
+  return DB.storageAreas.slice().sort(function(a, b) {
+    return (a.count_order || 0) - (b.count_order || 0);
+  });
+}
+
+function saveStorageAreas() {
+  try { safeSet('kl_storage_areas_v1', DB.storageAreas); } catch(e) { logErr('saveStorageAreas', e.message); }
+}
+
+/**
+ * seedDefaultStorageAreasIfEmpty()
+ * One-time migration: if no storage areas configured, seed defaults.
+ */
+function seedDefaultStorageAreasIfEmpty() {
+  if (!Array.isArray(DB.storageAreas)) DB.storageAreas = [];
+  // First check: did the operator already do the wizard storage step? If so, sync from there
+  if (DB.storageAreas.length === 0
+      && Array.isArray(DB.setupProfile && DB.setupProfile.storage)
+      && DB.setupProfile.storage.length > 0
+      && typeof syncSetupStorageToInventory === 'function') {
+    syncSetupStorageToInventory();
+  }
+  // Otherwise seed industry defaults
+  if (DB.storageAreas.length === 0) {
+    DB.storageAreas = JSON.parse(JSON.stringify(DEFAULT_STORAGE_AREAS));
+    saveStorageAreas();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// COUNT SCHEDULE — 15th and last day of month
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * getNextCountCheckpoint(asOfDate)
+ * Returns { date, label, type, daysUntil } for the next scheduled count.
+ *   type = 'mid_month' | 'end_month'
+ */
+function getNextCountCheckpoint(asOfDate) {
+  asOfDate = asOfDate || new Date().toISOString().slice(0, 10);
+  var d = new Date(asOfDate + 'T12:00:00');
+  var y = d.getFullYear();
+  var m = d.getMonth();
+  var day = d.getDate();
+  // Last day of THIS month
+  var lastDayThis = new Date(y, m + 1, 0).getDate();
+  // Mid-month checkpoint = 15th
+  var nextDate, type;
+  if (day < 15) {
+    nextDate = new Date(y, m, 15, 12);
+    type = 'mid_month';
+  } else if (day === 15) {
+    // Today IS the 15th — that's the next checkpoint
+    nextDate = new Date(y, m, 15, 12);
+    type = 'mid_month';
+  } else if (day < lastDayThis) {
+    nextDate = new Date(y, m, lastDayThis, 12);
+    type = 'end_month';
+  } else if (day === lastDayThis) {
+    nextDate = new Date(y, m, lastDayThis, 12);
+    type = 'end_month';
+  } else {
+    nextDate = new Date(y, m + 1, 15, 12);
+    type = 'mid_month';
+  }
+  var dateStr = nextDate.toISOString().slice(0, 10);
+  var daysUntil = Math.ceil((nextDate - new Date(asOfDate + 'T12:00:00')) / 86400000);
+  var label = type === 'mid_month' ? 'Mid-Month Count (15th)' : 'End-of-Month Count';
+  return {
+    date: dateStr,
+    type: type,
+    label: label,
+    daysUntil: daysUntil,
+    isToday: dateStr === asOfDate,
+    isOverdue: daysUntil < 0,
+  };
+}
+
+/**
+ * getLastCountCheckpoint(asOfDate)
+ * Returns the most recent scheduled checkpoint date that has passed.
+ */
+function getLastCountCheckpoint(asOfDate) {
+  asOfDate = asOfDate || new Date().toISOString().slice(0, 10);
+  var d = new Date(asOfDate + 'T12:00:00');
+  var y = d.getFullYear();
+  var m = d.getMonth();
+  var day = d.getDate();
+  var lastDayPrev = new Date(y, m, 0).getDate();
+  if (day >= 15) {
+    return { date: new Date(y, m, 15, 12).toISOString().slice(0, 10), type:'mid_month', label:'Mid-Month Count (15th)' };
+  } else {
+    return { date: new Date(y, m - 1, lastDayPrev, 12).toISOString().slice(0, 10), type:'end_month', label:'Previous End-of-Month' };
+  }
+}
+
+/**
+ * getCountForCheckpoint(checkpointDate)
+ * Returns the count record (if any) closest to a checkpoint date (within 3 days).
+ */
+function getCountForCheckpoint(checkpointDate) {
+  if (!Array.isArray(DB.inventoryCounts) || !DB.inventoryCounts.length) return null;
+  var target = new Date(checkpointDate + 'T12:00:00');
+  var closest = null;
+  var minDiff = Infinity;
+  DB.inventoryCounts.forEach(function(c) {
+    if (!c.date) return;
+    var diff = Math.abs(new Date(c.date + 'T12:00:00') - target) / 86400000;
+    if (diff <= 3 && diff < minDiff) {
+      minDiff = diff;
+      closest = c;
+    }
+  });
+  return closest;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SHEET-TO-SHELF COUNT FLOW
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * getInventoryItemsByLocation()
+ * Groups DB.ingredients by storage area, ordered by shelf and position.
+ * Returns { areaId: { area, items: [...] } }
+ */
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE 14g.2 — MULTI-UOM COUNT INSTANCES
+   - Each item can have N count locations, each with own UoM
+   - In-count UoM dropdown (no setup-first step)
+   - ↑/↓ position reorder per line
+   - Recipe inventoriability (Prep + Sauce types)
+   - Storage area drag/reorder
+   Uses existing UOM_CONVERSIONS + convertToBaseUnit helpers.
+═══════════════════════════════════════════════════════════ */
+
+/**
+ * getRecommendedUoMs(item)
+ * Returns sensible UoM options for the count dropdown.
+ */
+function getRecommendedUoMs(item) {
+  // Returns ONLY UoM options that have a defined conversion path to the
+  // ingredient's canonical unit. No nonsense options that compute as 0.
+  // Always includes the canonical (received) unit FIRST so it's the default.
+  if (!item) return ['each'];
+  var canonical = (item.unit || 'each').toLowerCase();
+  var packSize = parseFloat(item.pack_size) || 1;
+
+  // Use an array (not Set) so we control ordering — canonical first
+  var options = [canonical];
+
+  // 'case' is valid IFF the item actually has a known case size (pack_size > 1)
+  if (packSize > 1) options.push('case');
+
+  // Volume/weight convertible options ONLY if the canonical unit is in that family
+  // and the conversion is defined in UOM_CONVERSIONS
+  var weightUnits = ['oz','lb','gram','kg'];
+  var volumeUnits = ['oz','gallon','quart','pint','cup','liter','ml'];
+  var canonicalIsWeight = weightUnits.indexOf(canonical) >= 0;
+  var canonicalIsVolume = volumeUnits.indexOf(canonical) >= 0 && canonical !== 'oz';
+  // Note: 'oz' is ambiguous — could be weight (meat) or volume (liquid).
+  // System defaults to weight via UOM_CONVERSIONS.oz.to_oz=1.
+
+  if (canonicalIsWeight) {
+    weightUnits.forEach(function(u){
+      if (u !== canonical && options.indexOf(u) < 0) options.push(u);
+    });
+  } else if (canonicalIsVolume) {
+    volumeUnits.forEach(function(u){
+      if (u !== canonical && options.indexOf(u) < 0) options.push(u);
+    });
+  }
+
+  // For 'each' canonical (countables): no convertible alternatives, just each + case
+  // (Already handled above.)
+
+  return options;
+}
+
+/**
+ * getCountInstanceCost(qty, count_unit, item)
+ * Extended price for one count instance. Uses existing convertToBaseUnit.
+ */
+function getCountInstanceCost(qty, count_unit, item) {
+  if (!item || !qty || parseFloat(qty) <= 0) return 0;
+  // Adapt item for convertToBaseUnit (which uses true_unit_cost + case_size)
+  var adapted = {
+    unit:            item.unit || 'each',
+    true_unit_cost:  item.true_unit_cost
+                     || (item.price && item.pack_size ? item.price / item.pack_size : item.price || 0),
+    case_size:       item.pack_size || 1,
+  };
+  var result = convertToBaseUnit(parseFloat(qty), count_unit, adapted);
+  return result.line_value || 0;
+}
+
+// ═══════════════════════════════════════════════════════════
+// COUNT INSTANCE MANAGEMENT
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * getCountableItems()
+ * Returns ingredients + inventoriable recipes (Prep + Sauce only).
+ */
+function getCountableItems() {
+  var items = (DB.ingredients || []).map(function(i) {
+    // Schema bridge: legacy ingredients use ingredient_id; new ones use id.
+    // Also: legacy uses true_unit_cost (no price field). Bridge to price for count math.
+    var id = i.id || i.ingredient_id;
+    var price = i.price != null ? i.price : (i.true_unit_cost || 0);
+    var pack_size = i.pack_size != null ? i.pack_size : 1;
+    var pack_unit = i.pack_unit || i.unit || 'each';
+    return Object.assign({}, i, {
+      id: id,
+      price: price,
+      pack_size: pack_size,
+      pack_unit: pack_unit,
+      _kind: 'ingredient'
+    });
+  });
+  (DB.recipes || []).forEach(function(r) {
+    if (!r.inventoriable) return;
+    if (!['Prep', 'Sauce'].includes(r.type)) return;
+    items.push({
+      id:           r.recipe_id,
+      name:         r.name + ' (prep)',
+      category:     'Prep Recipe',
+      unit:         r.yield_unit || 'each',
+      pack_size:    r.yield_qty || 1,
+      pack_unit:    r.yield_unit || 'each',
+      price:        r.cost || 0,
+      _kind:        'recipe',
+      _recipe_id:   r.recipe_id,
+    });
+  });
+  return items;
+}
+
+/**
+ * groupCountableItemsByArea()
+ * Groups countable items by their assigned storage areas.
+ * Items with NO count_locations[] go into _unassigned.
+ * Items with multiple locations appear once per location.
+ */
+function groupCountableItemsByArea() {
+  var areas = getStorageAreas();
+  var grouped = {};
+  areas.forEach(function(a) { grouped[a.id] = { area: a, instances: [] }; });
+  grouped._unassigned = { area: { id:'_unassigned', name:'Unassigned', icon:'\u2753', count_order:9999 }, instances: [] };
+
+  getCountableItems().forEach(function(item) {
+    var locs = Array.isArray(item.count_locations) ? item.count_locations : [];
+    if (locs.length === 0) {
+      // Legacy fallback: use storage_area_id or storage name
+      var areaId = item.storage_area_id;
+      if (!areaId && item.storage) {
+        var match = areas.find(function(a){ return a.name === item.storage; });
+        if (match) areaId = match.id;
+      }
+      var key = areaId && grouped[areaId] ? areaId : '_unassigned';
+      grouped[key].instances.push({
+        item:           item,
+        location_id:    null,
+        storage_area_id: key,
+        shelf:          '',
+        position:       item.shelf_order != null ? item.shelf_order : 999,
+        count_unit:     item.unit || 'ea',
+        canonical_factor: 1,
+      });
+    } else {
+      locs.forEach(function(loc) {
+        var key = loc.storage_area_id && grouped[loc.storage_area_id] ? loc.storage_area_id : '_unassigned';
+        grouped[key].instances.push({
+          item:            item,
+          location_id:     loc.id,
+          storage_area_id: loc.storage_area_id,
+          shelf:           loc.shelf || '',
+          position:        loc.position != null ? loc.position : 999,
+          count_unit:      loc.count_unit || item.unit || 'ea',
+          canonical_factor: loc.canonical_factor || 1,
+          par:             loc.par || null,
+        });
+      });
+    }
+  });
+
+  // Sort instances within each area by shelf then position
+  Object.keys(grouped).forEach(function(k) {
+    grouped[k].instances.sort(function(a, b) {
+      var sa = (a.shelf || '');
+      var sb = (b.shelf || '');
+      if (sa !== sb) return sa.localeCompare(sb);
+      return (a.position || 999) - (b.position || 999);
+    });
+  });
+
+  return grouped;
+}
+
+/**
+ * addCountLocation(itemId, kind, areaId)
+ * Creates a new count_location[] entry on the item (ingredient or recipe).
+ */
+function addCountLocation(itemId, kind, areaId) {
+  var target = kind === 'recipe'
+    ? (DB.recipes || []).find(function(r){ return r.recipe_id === itemId; })
+    : (DB.ingredients || []).find(function(i){ return (i.id || i.ingredient_id) === itemId; });
+  if (!target) return null;
+  if (!Array.isArray(target.count_locations)) target.count_locations = [];
+  // Default position = end of that storage area
+  var existing = target.count_locations.filter(function(l){ return l.storage_area_id === areaId; });
+  var newLoc = {
+    id:               'cl-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
+    storage_area_id:  areaId,
+    shelf:            '',
+    position:         existing.length + 1,
+    count_unit:       target.unit || 'ea',
+    canonical_factor: 1,
+    par:              null,
+  };
+  target.count_locations.push(newLoc);
+  if (kind === 'recipe' && typeof saveRecipes === 'function') saveRecipes();
+  if (kind === 'ingredient' && typeof saveIngredients === 'function') saveIngredients();
+  return newLoc;
+}
+
+/**
+ * removeCountLocation(itemId, kind, locationId)
+ */
+function removeCountLocation(itemId, kind, locationId) {
+  var target = kind === 'recipe'
+    ? (DB.recipes || []).find(function(r){ return r.recipe_id === itemId; })
+    : (DB.ingredients || []).find(function(i){ return (i.id || i.ingredient_id) === itemId; });
+  if (!target || !Array.isArray(target.count_locations)) return;
+  target.count_locations = target.count_locations.filter(function(l){ return l.id !== locationId; });
+  if (kind === 'recipe' && typeof saveRecipes === 'function') saveRecipes();
+  if (kind === 'ingredient' && typeof saveIngredients === 'function') saveIngredients();
+}
+
+/**
+ * updateCountLocation(itemId, kind, locationId, fields)
+ */
+function updateCountLocation(itemId, kind, locationId, fields) {
+  var target = kind === 'recipe'
+    ? (DB.recipes || []).find(function(r){ return r.recipe_id === itemId; })
+    : (DB.ingredients || []).find(function(i){ return (i.id || i.ingredient_id) === itemId; });
+  if (!target || !Array.isArray(target.count_locations)) return;
+  var loc = target.count_locations.find(function(l){ return l.id === locationId; });
+  if (!loc) return;
+  Object.assign(loc, fields);
+  if (kind === 'recipe' && typeof saveRecipes === 'function') saveRecipes();
+  if (kind === 'ingredient' && typeof saveIngredients === 'function') saveIngredients();
+}
+
+/**
+ * moveCountLocationPosition(itemId, kind, locationId, direction)
+ *   direction = 'up' or 'down' — swaps position with adjacent item in same area
+ */
+function moveCountLocationPosition(itemId, kind, locationId, direction) {
+  var target = kind === 'recipe'
+    ? (DB.recipes || []).find(function(r){ return r.recipe_id === itemId; })
+    : (DB.ingredients || []).find(function(i){ return (i.id || i.ingredient_id) === itemId; });
+  if (!target || !Array.isArray(target.count_locations)) return;
+  var loc = target.count_locations.find(function(l){ return l.id === locationId; });
+  if (!loc) return;
+  // We need to swap with the adjacent item in the SAME storage area
+  // Get all instances in that area across all items
+  var grouped = groupCountableItemsByArea();
+  var areaGroup = grouped[loc.storage_area_id];
+  if (!areaGroup) return;
+  var idx = areaGroup.instances.findIndex(function(inst){ return inst.location_id === locationId; });
+  if (idx < 0) return;
+  var swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+  if (swapIdx < 0 || swapIdx >= areaGroup.instances.length) return;
+  var thisPos = areaGroup.instances[idx].position;
+  var swapPos = areaGroup.instances[swapIdx].position;
+  // Update both
+  loc.position = swapPos;
+  var swapInst = areaGroup.instances[swapIdx];
+  var swapTarget = swapInst.item._kind === 'recipe'
+    ? (DB.recipes || []).find(function(r){ return r.recipe_id === swapInst.item._recipe_id; })
+    : (DB.ingredients || []).find(function(i){ return i.id === swapInst.item.id; });
+  if (swapTarget && Array.isArray(swapTarget.count_locations)) {
+    var swapLoc = swapTarget.count_locations.find(function(l){ return l.id === swapInst.location_id; });
+    if (swapLoc) swapLoc.position = thisPos;
+  }
+  if (typeof saveIngredients === 'function') saveIngredients();
+  if (typeof saveRecipes === 'function') saveRecipes();
+}
+
+// ═══════════════════════════════════════════════════════════
+// STORAGE AREA REORDER
+// ═══════════════════════════════════════════════════════════
+
+function moveStorageAreaOrder(areaId, direction) {
+  if (!Array.isArray(DB.storageAreas) || DB.storageAreas.length < 2) return;
+  // Sort by current count_order
+  DB.storageAreas.sort(function(a,b){ return (a.count_order||0)-(b.count_order||0); });
+  var idx = DB.storageAreas.findIndex(function(a){ return a.id === areaId; });
+  if (idx < 0) return;
+  var swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+  if (swapIdx < 0 || swapIdx >= DB.storageAreas.length) return;
+  // Swap count_order values
+  var tmp = DB.storageAreas[idx].count_order;
+  DB.storageAreas[idx].count_order = DB.storageAreas[swapIdx].count_order;
+  DB.storageAreas[swapIdx].count_order = tmp;
+  if (typeof saveStorageAreas === 'function') saveStorageAreas();
+  if (typeof drawMain === 'function') {
+    drawMain.preserveScroll = true;
+    drawMain();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// SHEET-TO-SHELF COUNT — REWRITTEN FOR MULTI-INSTANCE
+// ═══════════════════════════════════════════════════════════
+
+
+
+/**
+ * inventory() — Phase 14g page entry. Routes to count-in-progress OR dashboard.
+ */
+// ═══════════════════════════════════════════════════════════
+// PURCHASE INVOICE PARSING + REVIEW
+// ═══════════════════════════════════════════════════════════
+
+function ensurePurchaseCollections() {
+  if (!Array.isArray(DB.purchaseInvoices)) DB.purchaseInvoices = [];
+  if (!Array.isArray(DB.purchaseLines))    DB.purchaseLines    = [];
+  if (!Array.isArray(DB.vendorItemMappings)) DB.vendorItemMappings = [];
+}
+
+function savePurchaseInvoices() { try { safeSet('kl_purchase_invoices_v1', DB.purchaseInvoices); } catch(e) {} }
+function savePurchaseLines()    { try { safeSet('kl_purchase_lines_v1',    DB.purchaseLines);    } catch(e) {} }
+function saveVendorItemMappings(){ try { safeSet('kl_vendor_item_mappings_v1', DB.vendorItemMappings); } catch(e) {} }
+
+/**
+ * parseInvoiceCSV(csvText, sourceFile)
+ * Parses a generic invoice CSV. Returns { invoice, lines, errors, warnings }.
+ * Lines are NOT auto-posted — they go to a review screen.
+ */
+function parseInvoiceCSV(csvText, sourceFile) {
+  var lines = csvText.trim().split(/\r?\n/);
+  if (lines.length < 2) return { invoice: null, lines: [], errors: ['File appears empty'], warnings: [] };
+
+  function parseLine(line) {
+    var result=[], current='', inQuote=false;
+    for (var i=0; i<line.length; i++) {
+      var ch = line[i];
+      if (ch==='"') { inQuote=!inQuote; }
+      else if (ch===',' && !inQuote) { result.push(current.trim()); current=''; }
+      else { current+=ch; }
+    }
+    result.push(current.trim());
+    return result;
+  }
+
+  var headers = parseLine(lines[0]).map(function(h){
+    return h.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  });
+
+  // Column mapping — broad coverage of common invoice formats
+  var COL_MAPS = {
+    item_name:    ['item','item_name','description','product','sku_name','item_description'],
+    item_number:  ['item_number','item_no','sku','sku_number','product_id','item_id','vendor_item_no'],
+    qty:          ['qty','quantity','qty_ordered','quantity_ordered','units'],
+    pack_size:    ['pack_size','pack','case_size','units_per_case','pack_qty'],
+    unit:         ['unit','uom','unit_of_measure','pack_unit'],
+    total_cost:   ['total','total_cost','amount','line_total','extended','ext_price','total_price'],
+    unit_cost:    ['unit_cost','price','unit_price','cost','cost_per_unit','price_each'],
+    invoice_date: ['date','invoice_date','order_date','ship_date'],
+    invoice_no:   ['invoice','invoice_number','invoice_no','order_number','order_no','po_number'],
+    vendor:       ['vendor','supplier','vendor_name','company'],
+  };
+
+  function findCol(key) {
+    var candidates = COL_MAPS[key] || [];
+    for (var i = 0; i < candidates.length; i++) {
+      var idx = headers.indexOf(candidates[i]);
+      if (idx >= 0) return idx;
+    }
+    for (var j = 0; j < candidates.length; j++) {
+      for (var k = 0; k < headers.length; k++) {
+        if (headers[k].indexOf(candidates[j]) >= 0) return k;
+      }
+    }
+    return -1;
+  }
+
+  var cols = {};
+  Object.keys(COL_MAPS).forEach(function(k){ cols[k] = findCol(k); });
+
+  var errors = [];
+  var warnings = [];
+  if (cols.item_name < 0) errors.push('No item name column found.');
+  if (cols.total_cost < 0 && cols.unit_cost < 0) errors.push('No cost column found.');
+  if (cols.qty < 0) warnings.push('No quantity column — assuming 1 per line.');
+
+  if (errors.length) {
+    return { invoice: null, lines: [], errors: errors, warnings: warnings };
+  }
+
+  function parseAmt(s) { if (!s) return 0; return parseFloat(String(s).replace(/[$,\s]/g,'')) || 0; }
+  function parseQty(s) { if (!s) return 1; return parseFloat(String(s).replace(/[,\s]/g,'')) || 1; }
+
+  var invoiceMeta = {};
+  var parsedLines = [];
+
+  for (var i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    var cells = parseLine(lines[i]);
+    var raw = cols.item_name >= 0 ? cells[cols.item_name] : '';
+    if (!raw || raw.toLowerCase().indexOf('total') >= 0 || raw.toLowerCase().indexOf('subtotal') >= 0) continue;
+
+    var qty       = cols.qty >= 0          ? parseQty(cells[cols.qty]) : 1;
+    var totalCost = cols.total_cost >= 0   ? parseAmt(cells[cols.total_cost]) : 0;
+    var unitCost  = cols.unit_cost >= 0    ? parseAmt(cells[cols.unit_cost]) : 0;
+    if (!totalCost && unitCost && qty) totalCost = round2(unitCost * qty);
+    if (!unitCost  && totalCost && qty) unitCost  = round2(totalCost / qty);
+
+    parsedLines.push({
+      raw_item_name:        raw,
+      vendor_item_number:   cols.item_number >= 0 ? (cells[cols.item_number] || '') : '',
+      qty:                  qty,
+      pack_size:            cols.pack_size >= 0 ? parseQty(cells[cols.pack_size]) : null,
+      unit:                 cols.unit >= 0 ? cells[cols.unit] : '',
+      total_cost:           round2(totalCost),
+      cost_per_unit:        round2(unitCost),
+      matched_inventory_item_id: null,
+      confidence_score:     0,
+    });
+
+    // Capture invoice meta from first line
+    if (i === 1) {
+      if (cols.invoice_date >= 0) invoiceMeta.invoice_date = (cells[cols.invoice_date] || '').replace(/['"]/g,'').trim();
+      if (cols.invoice_no >= 0)   invoiceMeta.invoice_number = cells[cols.invoice_no];
+      if (cols.vendor >= 0)       invoiceMeta.vendor         = cells[cols.vendor];
+    }
+  }
+
+  // Try to match each line to existing inventory items
+  parsedLines.forEach(function(line) {
+    var match = matchInvoiceLineToInventory(line, invoiceMeta.vendor);
+    if (match) {
+      line.matched_inventory_item_id = match.id;
+      line.confidence_score = match.confidence;
+    }
+  });
+
+  // Build invoice meta
+  var subtotal = parsedLines.reduce(function(s, l) { return s + (l.total_cost || 0); }, 0);
+  if (!invoiceMeta.invoice_date) invoiceMeta.invoice_date = new Date().toISOString().slice(0, 10);
+  // Normalize date
+  try {
+    var dt = new Date(invoiceMeta.invoice_date);
+    if (!isNaN(dt.getTime())) invoiceMeta.invoice_date = dt.toISOString().slice(0, 10);
+  } catch(e) {}
+
+  var invoice = {
+    id:              'inv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
+    vendor:          invoiceMeta.vendor || '',
+    invoice_date:    invoiceMeta.invoice_date,
+    invoice_number:  invoiceMeta.invoice_number || '',
+    subtotal:        round2(subtotal),
+    tax:             0,
+    total:           round2(subtotal),
+    source_file:     sourceFile || 'csv',
+    status:          'draft',
+    created_at:      new Date().toISOString(),
+  };
+
+  return { invoice: invoice, lines: parsedLines, errors: errors, warnings: warnings };
+}
+
+/**
+ * matchInvoiceLineToInventory(line, vendorName)
+ * Returns { id, confidence } or null.
+ *   1.0 = exact vendor item number match (saved mapping)
+ *   0.9 = exact item name match
+ *   0.7 = normalized name match
+ *   0.5 = partial name match
+ */
+function matchInvoiceLineToInventory(line, vendorName) {
+  ensurePurchaseCollections();
+  if (!Array.isArray(DB.ingredients) || !DB.ingredients.length) return null;
+  var raw = (line.raw_item_name || '').trim();
+  var rawLower = raw.toLowerCase();
+  var vendorItemNo = (line.vendor_item_number || '').trim();
+
+  // 1. Saved vendor-item-number mapping
+  if (vendorItemNo && vendorName) {
+    var mapping = DB.vendorItemMappings.find(function(m) {
+      return m.vendor === vendorName && m.vendor_item_number === vendorItemNo;
+    });
+    if (mapping) {
+      var mItem = DB.ingredients.find(function(i) { return i.id === mapping.inventory_item_id; });
+      if (mItem) return { id: mItem.id, confidence: 1.0 };
+    }
+  }
+
+  // 2. Saved name-based mapping
+  if (vendorName) {
+    var nameMapping = DB.vendorItemMappings.find(function(m) {
+      return m.vendor === vendorName && (m.vendor_item_name || '').toLowerCase() === rawLower;
+    });
+    if (nameMapping) {
+      var nmItem = DB.ingredients.find(function(i) { return i.id === nameMapping.inventory_item_id; });
+      if (nmItem) return { id: nmItem.id, confidence: 1.0 };
+    }
+  }
+
+  // 3. Exact name match
+  var exact = DB.ingredients.find(function(i) {
+    return (i.name || '').toLowerCase() === rawLower;
+  });
+  if (exact) return { id: exact.id, confidence: 0.9 };
+
+  // 4. Normalized match (strip punctuation, common words)
+  var normRaw = rawLower.replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
+  var normExact = DB.ingredients.find(function(i) {
+    var ni = (i.name || '').toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
+    return ni === normRaw;
+  });
+  if (normExact) return { id: normExact.id, confidence: 0.7 };
+
+  // 5. Partial / contains match
+  if (normRaw.length >= 4) {
+    var partial = DB.ingredients.find(function(i) {
+      var ni = (i.name || '').toLowerCase();
+      return ni.indexOf(normRaw) >= 0 || normRaw.indexOf(ni) >= 0;
+    });
+    if (partial) return { id: partial.id, confidence: 0.5 };
+  }
+
+  return null;
+}
+
+/**
+ * saveVendorItemMapping(vendor, rawName, vendorItemNo, inventoryItemId)
+ * Remember a mapping forever so we don't ask again next time.
+ */
+function saveVendorItemMapping(vendor, rawName, vendorItemNo, inventoryItemId) {
+  ensurePurchaseCollections();
+  // Remove any existing mapping for this vendor+name+number combo
+  DB.vendorItemMappings = DB.vendorItemMappings.filter(function(m) {
+    if (m.vendor !== vendor) return true;
+    if (vendorItemNo && m.vendor_item_number === vendorItemNo) return false;
+    if (rawName && (m.vendor_item_name || '').toLowerCase() === (rawName || '').toLowerCase()) return false;
+    return true;
+  });
+  DB.vendorItemMappings.push({
+    vendor:              vendor,
+    vendor_item_name:    rawName,
+    vendor_item_number:  vendorItemNo || '',
+    inventory_item_id:   inventoryItemId,
+    created_at:          new Date().toISOString(),
+  });
+  saveVendorItemMappings();
+}
+
+/**
+ * commitInvoice(invoice, lines)
+ * Posts invoice + lines, updates ingredient costs, saves vendor mappings.
+ */
+function commitInvoice(invoice, lines) {
+  ensurePurchaseCollections();
+  invoice.status = 'posted';
+  invoice.posted_at = new Date().toISOString();
+  DB.purchaseInvoices.push(invoice);
+
+  lines.forEach(function(line) {
+    line.invoice_id = invoice.id;
+    DB.purchaseLines.push(line);
+
+    // Save vendor item mapping for next time (if matched)
+    if (line.matched_inventory_item_id && invoice.vendor) {
+      saveVendorItemMapping(invoice.vendor, line.raw_item_name, line.vendor_item_number, line.matched_inventory_item_id);
+    }
+
+    // Update ingredient cost (most recent purchase price wins)
+    if (line.matched_inventory_item_id && line.cost_per_unit > 0) {
+      var item = DB.ingredients.find(function(i) { return i.id === line.matched_inventory_item_id; });
+      if (item) {
+        item.last_purchase_price = line.cost_per_unit;
+        item.last_purchase_date = invoice.invoice_date;
+        // Update price field if significantly different (>1% change)
+        if (item.price && Math.abs(item.price - line.cost_per_unit) / item.price > 0.01) {
+          item.previous_price = item.price;
+          item.price = line.cost_per_unit;
+          item.price_change_pct = round2(((line.cost_per_unit - item.previous_price) / item.previous_price) * 100);
+        } else if (!item.price) {
+          item.price = line.cost_per_unit;
+        }
+      }
+    }
+  });
+
+  savePurchaseInvoices();
+  savePurchaseLines();
+  if (typeof saveIngredients === 'function') saveIngredients();
+  if (typeof recalcAllRecipeCosts === 'function') recalcAllRecipeCosts();
+  if (typeof saveRecipes === 'function') saveRecipes();
+}
+
+// ═══════════════════════════════════════════════════════════
+// THEORETICAL VS ACTUAL USAGE + VARIANCE
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * getTheoreticalUsage(startDate, endDate)
+ * Returns { ingredient_id: { qty, unit, cost } } based on:
+ *   - Sales mix × recipe ingredients (sold items)
+ *   - Prep recipes made (DB.prepLog if available)
+ */
+function getTheoreticalUsage(startDate, endDate) {
+  var usage = {};
+  var sales = (DB.salesLog || []).filter(function(s) {
+    return s.date >= startDate && s.date <= endDate;
+  });
+  // For each sales line, find the recipe and add ingredient usage
+  sales.forEach(function(sale) {
+    var recipe = sale.matched_recipe_id
+      ? DB.recipes.find(function(r) { return r.recipe_id === sale.matched_recipe_id; })
+      : DB.recipes.find(function(r) { return (r.name || '').toLowerCase() === (sale.item_name || '').toLowerCase(); });
+    if (!recipe || !Array.isArray(recipe.ingredients)) return;
+    var qtySold = sale.qty || 1;
+    recipe.ingredients.forEach(function(ing) {
+      if (!ing.ingredient_id) return;
+      if (!usage[ing.ingredient_id]) usage[ing.ingredient_id] = { qty:0, unit:ing.unit||'', cost:0 };
+      usage[ing.ingredient_id].qty += (ing.qty || 0) * qtySold;
+    });
+    // Sub-recipes
+    (recipe.sub_recipes || []).forEach(function(sub) {
+      var subRec = DB.recipes.find(function(r) { return r.recipe_id === sub.recipe_id; });
+      if (!subRec || !Array.isArray(subRec.ingredients)) return;
+      var subYield = subRec.yield_qty || 1;
+      var subPortion = (sub.qty || 1) / subYield;
+      subRec.ingredients.forEach(function(ing) {
+        if (!ing.ingredient_id) return;
+        if (!usage[ing.ingredient_id]) usage[ing.ingredient_id] = { qty:0, unit:ing.unit||'', cost:0 };
+        usage[ing.ingredient_id].qty += (ing.qty || 0) * subPortion * qtySold;
+      });
+    });
+  });
+
+  // Cost it out
+  Object.keys(usage).forEach(function(ingId) {
+    var item = DB.ingredients.find(function(i) { return i.id === ingId; });
+    if (item && item.price) {
+      usage[ingId].cost = round2(usage[ingId].qty * (item.price / (item.pack_size || 1)));
+    }
+  });
+
+  return usage;
+}
+
+/**
+ * getActualUsage(startDate, endDate)
+ * Returns { ingredient_id: { begin_qty, purchase_qty, end_qty, used_qty, cost } }
+ * based on physical counts + invoices.
+ *
+ * Formula: used = begin + purchases - end
+ */
+function getActualUsage(startDate, endDate) {
+  // Find counts at start (or just before) and end (or just after)
+  var counts = (DB.inventoryCounts || []).slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
+  var beginCount = null;
+  var endCount = null;
+  for (var i = 0; i < counts.length; i++) {
+    if (counts[i].date <= startDate) beginCount = counts[i];
+    if (counts[i].date >= endDate && !endCount) { endCount = counts[i]; break; }
+  }
+  if (!beginCount || !endCount) return null; // can't compute without bracket
+
+  var usage = {};
+  // Begin
+  (beginCount.lines || []).forEach(function(line) {
+    if (!line.ingredient_id) return;
+    if (!usage[line.ingredient_id]) usage[line.ingredient_id] = { begin_qty:0, purchase_qty:0, end_qty:0, used_qty:0, cost:0 };
+    usage[line.ingredient_id].begin_qty = parseFloat(line.qty) || 0;
+  });
+  // Purchases between begin and end
+  var lines = (DB.purchaseLines || []).filter(function(pl) {
+    var inv = (DB.purchaseInvoices || []).find(function(i) { return i.id === pl.invoice_id; });
+    if (!inv) return false;
+    return inv.invoice_date > beginCount.date && inv.invoice_date <= endCount.date;
+  });
+  lines.forEach(function(pl) {
+    if (!pl.matched_inventory_item_id) return;
+    if (!usage[pl.matched_inventory_item_id]) usage[pl.matched_inventory_item_id] = { begin_qty:0, purchase_qty:0, end_qty:0, used_qty:0, cost:0 };
+    var converted = (pl.qty || 0) * (pl.pack_size || 1);
+    usage[pl.matched_inventory_item_id].purchase_qty += converted;
+  });
+  // End
+  (endCount.lines || []).forEach(function(line) {
+    if (!line.ingredient_id) return;
+    if (!usage[line.ingredient_id]) usage[line.ingredient_id] = { begin_qty:0, purchase_qty:0, end_qty:0, used_qty:0, cost:0 };
+    usage[line.ingredient_id].end_qty = parseFloat(line.qty) || 0;
+  });
+  // Used
+  Object.keys(usage).forEach(function(ingId) {
+    var u = usage[ingId];
+    u.used_qty = u.begin_qty + u.purchase_qty - u.end_qty;
+    var item = DB.ingredients.find(function(i) { return i.id === ingId; });
+    if (item && item.price) {
+      u.cost = round2(u.used_qty * (item.price / (item.pack_size || 1)));
+    }
+  });
+  return usage;
+}
+
+/**
+ * getVarianceReport(startDate, endDate)
+ * Compares theoretical vs actual usage. Returns array of variance items.
+ */
+function getVarianceReport(startDate, endDate) {
+  var theoretical = getTheoreticalUsage(startDate, endDate);
+  var actual = getActualUsage(startDate, endDate);
+  if (!actual) return { ready: false, message: 'Need a count before AND after this period to compute variance.' };
+
+  var report = [];
+  var allIds = {};
+  Object.keys(theoretical).forEach(function(id){ allIds[id] = true; });
+  Object.keys(actual).forEach(function(id){ allIds[id] = true; });
+
+  Object.keys(allIds).forEach(function(ingId) {
+    var item = DB.ingredients.find(function(i) { return i.id === ingId; });
+    if (!item) return;
+    var th = theoretical[ingId] || { qty:0, cost:0 };
+    var ac = actual[ingId] || { used_qty:0, cost:0 };
+    var diffQty = ac.used_qty - th.qty;
+    var diffPct = th.qty > 0 ? (diffQty / th.qty) * 100 : 0;
+    var diffCost = ac.cost - th.cost;
+
+    var severity, action;
+    if (Math.abs(diffPct) < 5) {
+      severity = 'ok';
+      action = '';
+    } else if (Math.abs(diffPct) < 15) {
+      severity = 'medium';
+      action = diffQty > 0
+        ? item.name + ' usage is ' + Math.round(diffPct) + '% higher than expected. Check portion sizes or waste.'
+        : item.name + ' usage is ' + Math.round(Math.abs(diffPct)) + '% lower than expected. Verify recipe yields or count accuracy.';
+    } else {
+      severity = 'high';
+      action = diffQty > 0
+        ? item.name + ' usage is ' + Math.round(diffPct) + '% over theoretical. Investigate: portion creep, waste, theft, or recipe error.'
+        : item.name + ' usage is ' + Math.round(Math.abs(diffPct)) + '% under. Likely cause: count error, missed recipe entry, or invoice mapping issue.';
+    }
+
+    report.push({
+      ingredient_id:  ingId,
+      name:           item.name,
+      theoretical_qty: round2(th.qty),
+      actual_qty:     round2(ac.used_qty),
+      diff_qty:       round2(diffQty),
+      diff_pct:       round2(diffPct),
+      diff_cost:      round2(diffCost),
+      severity:       severity,
+      action:         action,
+    });
+  });
+
+  // Sort: high severity first, then by absolute diff cost
+  report.sort(function(a, b) {
+    var sev = { high:3, medium:2, ok:1 };
+    if (sev[a.severity] !== sev[b.severity]) return sev[b.severity] - sev[a.severity];
+    return Math.abs(b.diff_cost) - Math.abs(a.diff_cost);
+  });
+
+  return { ready: true, report: report, period: { start: startDate, end: endDate } };
+}
+
+// ═══════════════════════════════════════════════════════════
+// REORDER LOGIC
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * getReorderSuggestions()
+ * Returns array of items that should be reordered, with vendor + qty + reason.
+ */
+function getReorderSuggestions() {
+  ensurePurchaseCollections();
+  if (!Array.isArray(DB.ingredients)) return [];
+  var latestCount = (DB.inventoryCounts || []).slice().sort(function(a,b){ return b.date.localeCompare(a.date); })[0];
+  var suggestions = [];
+
+  // Calculate average daily usage from recent sales (last 14 days)
+  var endDate = new Date().toISOString().slice(0, 10);
+  var startDate = new Date(Date.now() - 14 * 86400000).toISOString().slice(0, 10);
+  var recentUsage = getTheoreticalUsage(startDate, endDate);
+
+  DB.ingredients.forEach(function(item) {
+    var par = parseFloat(item.par_level) || 0;
+    var currentLine = latestCount && latestCount.lines
+      ? latestCount.lines.find(function(l) { return l.ingredient_id === item.id; })
+      : null;
+    var currentQty = currentLine ? parseFloat(currentLine.qty) || 0 : 0;
+    var dailyUsage = recentUsage[item.id] ? (recentUsage[item.id].qty / 14) : 0;
+
+    var vendor = item.vendor_id ? DB.vendors.find(function(v) { return v.id === item.vendor_id; }) : null;
+    var leadDays = vendor ? (vendor.lead_days || 2) : 2;
+    var safetyDays = 2;
+
+    // Should reorder if current + (lead + safety days of usage) < par
+    var projectedNeed = dailyUsage * (leadDays + safetyDays);
+    var totalNeeded = par + projectedNeed;
+
+    var shouldReorder = false;
+    var reason = '';
+
+    if (par > 0 && currentQty < par) {
+      shouldReorder = true;
+      reason = 'Below par (' + par + ' ' + (item.unit || '') + '). ';
+    } else if (dailyUsage > 0 && currentQty < dailyUsage * (leadDays + safetyDays)) {
+      shouldReorder = true;
+      reason = 'Will run out before next delivery. ';
+    }
+
+    if (!shouldReorder) return;
+
+    var suggestQty = Math.max(par - currentQty, projectedNeed);
+    var packSize = item.pack_size || 1;
+    var packsToOrder = Math.ceil(suggestQty / packSize);
+
+    suggestions.push({
+      ingredient_id:    item.id,
+      name:             item.name,
+      current_qty:      round2(currentQty),
+      par:              par,
+      daily_usage:      round2(dailyUsage),
+      suggest_qty:      round2(suggestQty),
+      packs_to_order:   packsToOrder,
+      pack_size:        packSize,
+      pack_unit:        item.pack_unit || item.unit || '',
+      vendor_name:      vendor ? vendor.name : '(no vendor)',
+      vendor_id:        vendor ? vendor.id : null,
+      lead_days:        leadDays,
+      reason:           reason + (vendor ? '(lead time ' + leadDays + ' days)' : ''),
+      estimated_cost:   round2(packsToOrder * (item.price || 0)),
+    });
+  });
+
+  // Sort by urgency (lowest current/par ratio first)
+  suggestions.sort(function(a, b) {
+    var ratioA = a.par > 0 ? a.current_qty / a.par : 0;
+    var ratioB = b.par > 0 ? b.current_qty / b.par : 0;
+    return ratioA - ratioB;
+  });
+
+  return suggestions;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PERIOD-BASED FOOD COST (for Owner Mode)
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * getPeriodFoodCost(startDate, endDate)
+ * Beginning Inventory + Purchases - Ending Inventory = COGS
+ * COGS / Sales = Food Cost %
+ */
+function getPeriodFoodCost(startDate, endDate) {
+  ensurePurchaseCollections();
+  var counts = (DB.inventoryCounts || []).slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
+  var beginCount = null;
+  var endCount = null;
+  for (var i = 0; i < counts.length; i++) {
+    if (counts[i].date <= startDate) beginCount = counts[i];
+    if (counts[i].date >= endDate && !endCount) { endCount = counts[i]; break; }
+  }
+
+  var beginVal = beginCount ? (beginCount.total_value || 0) : null;
+  var endVal   = endCount   ? (endCount.total_value || 0)   : null;
+
+  // Purchases in period
+  var purchases = (DB.purchaseInvoices || [])
+    .filter(function(inv) {
+      return inv.status === 'posted' && inv.invoice_date >= startDate && inv.invoice_date <= endDate;
+    })
+    .reduce(function(s, inv) { return s + (inv.total || 0); }, 0);
+
+  // Sales in period
+  var sales = 0;
+  Object.keys(DB.dailySales || {}).forEach(function(d) {
+    if (d >= startDate && d <= endDate) {
+      sales += parseFloat(DB.dailySales[d].total) || 0;
+    }
+  });
+
+  var cogs = (beginVal != null && endVal != null) ? (beginVal + purchases - endVal) : null;
+  var pct  = (cogs != null && sales > 0) ? (cogs / sales) * 100 : null;
+
+  return {
+    period:        { start: startDate, end: endDate },
+    begin_value:   beginVal,
+    begin_date:    beginCount ? beginCount.date : null,
+    purchases:     round2(purchases),
+    end_value:     endVal,
+    end_date:      endCount ? endCount.date : null,
+    cogs:          cogs != null ? round2(cogs) : null,
+    sales:         round2(sales),
+    food_cost_pct: pct != null ? round2(pct) : null,
+    ready:         (beginVal != null && endVal != null && sales > 0),
+  };
+}
+
+
 function inventory() {
-  var areas        = getStorageAreasForCount();
-  var latest       = getLatestCount();
-  var latestVal    = latest ? latest.total_value : null;
-  var latestDate   = latest ? latest.date : null;
-  var purchases    = (DB.purchaseLog||[]).slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
-  var recentPurch  = purchases.slice(0,5);
-  var totalPurch30 = purchases.filter(function(p){
-    var d30 = new Date(); d30.setDate(d30.getDate()-30);
-    return new Date(p.date) >= d30;
-  }).reduce(function(s,p){ return s+(p.total||0); }, 0);
+  seedDefaultStorageAreasIfEmpty();
+  ensurePurchaseCollections();
 
-  // If active count in progress — show count sheet
-  if (_activeCount) {
-    return renderCountSheet(areas);
+  // Active count in progress?
+  if (window._activeCount) {
+    return renderSheetToShelfCount();
   }
 
-  // ── COGS snapshot (last 30 days) ──────────────────────────────────
-  var today    = new Date().toISOString().slice(0,10);
-  var now3     = new Date();
-  var monthStart = now3.getFullYear() + '-' + String(now3.getMonth()+1).padStart(2,'0') + '-01';
-  var cogs     = calcCOGS(monthStart, today);
+  var today = new Date().toISOString().slice(0, 10);
+  var nextCheckpoint = getNextCountCheckpoint(today);
+  var lastCount = (DB.inventoryCounts || []).slice().sort(function(a,b){ return b.date.localeCompare(a.date); })[0];
 
-  var cogsCard = '';
-  if (latestVal !== null) {
-    var pctColor = cogs.pct > 35 ? 'var(--danger)' : cogs.pct > 30 ? 'var(--orange)' : 'var(--teal)';
-    cogsCard = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:18px 20px;margin-bottom:16px">'
-      + '<div style="font-size:10px;color:var(--orange);font-family:\'JetBrains Mono\',monospace;letter-spacing:1px;margin-bottom:12px">COGS SNAPSHOT · ' + now3.toLocaleString('en-US',{month:'long',year:'numeric'}).toUpperCase() + '</div>'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'
-        + cogsRow('Beginning Inventory', '$' + cogs.beginning.toFixed(2), '')
-        + cogsRow('+ Food Purchases',    '$' + cogs.purchases.toFixed(2), '')
-        + cogsRow('− Ending Inventory',  '$' + cogs.ending.toFixed(2), '')
-        + '<div style="grid-column:1/-1;border-top:1px solid var(--border);padding-top:8px;display:flex;justify-content:space-between;align-items:center">'
-          + '<div style="font-size:13px;font-weight:700;color:var(--text)">Cost of Goods Sold</div>'
-          + '<div style="font-size:18px;font-weight:700;color:var(--text)">$' + cogs.cogs.toFixed(2) + '</div>'
-        + '</div>'
-        + (cogs.revenue > 0
-            ? '<div style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:center">'
-              + '<div style="font-size:12px;color:var(--text2)">Food Cost % (actual)</div>'
-              + '<div style="font-size:20px;font-weight:700;color:' + pctColor + '">' + cogs.pct.toFixed(1) + '%</div>'
-            + '</div>'
-            : '<div style="grid-column:1/-1;font-size:11px;color:var(--text3)">Add daily sales to see food cost %</div>')
-      + '</div>'
-    + '</div>';
+  // Period food cost (current month-to-date)
+  var monthStart = today.slice(0, 8) + '01';
+  var fc = (typeof getPeriodFoodCost === 'function') ? getPeriodFoodCost(monthStart, today) : { ready: false };
+
+  // Reorder suggestions
+  var reorders = (typeof getReorderSuggestions === 'function') ? getReorderSuggestions() : [];
+
+  // Variance (last completed period)
+  var varianceReport = null;
+  if (lastCount && DB.inventoryCounts.length >= 2 && typeof getVarianceReport === 'function') {
+    var sorted = DB.inventoryCounts.slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
+    var prev = sorted[sorted.length - 2];
+    if (prev) varianceReport = getVarianceReport(prev.date, lastCount.date);
   }
 
-  function cogsRow(label, val, color) {
-    return '<div style="display:flex;justify-content:space-between;padding:4px 0">'
-      + '<div style="font-size:12px;color:var(--text2)">' + label + '</div>'
-      + '<div style="font-size:12px;font-weight:600;color:' + (color||'var(--text)') + '">' + val + '</div>'
-    + '</div>';
+  // ── COUNT CHECKPOINT BANNER ──────────────────────────────
+  var bannerColor, bannerLabel;
+  if (nextCheckpoint.isToday) {
+    bannerColor = 'var(--orange)';
+    bannerLabel = '\u{1F4C5} ' + nextCheckpoint.label + ' is TODAY';
+  } else if (nextCheckpoint.daysUntil <= 2) {
+    bannerColor = 'var(--warn)';
+    bannerLabel = '\u{1F4C5} ' + nextCheckpoint.label + ' in ' + nextCheckpoint.daysUntil + ' days';
+  } else {
+    bannerColor = 'var(--text3)';
+    bannerLabel = '\u{1F4C5} Next: ' + nextCheckpoint.label + ' in ' + nextCheckpoint.daysUntil + ' days';
   }
-
-  // ── Last count summary ────────────────────────────────────────────
-  var lastCountCard = latestVal !== null
-    ? '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">'
-        + '<div>'
-          + '<div style="font-size:10px;color:var(--text3);font-family:\'JetBrains Mono\',monospace;letter-spacing:1px">LAST COUNT</div>'
-          + '<div style="font-size:13px;color:var(--text2);margin-top:2px">' + latestDate + '</div>'
-        + '</div>'
-        + '<div style="font-size:22px;font-weight:700;color:var(--teal)">$' + latestVal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + '</div>'
+  var checkpointBanner = '<div style="background:var(--bg2);border:1px solid var(--border);border-left:4px solid ' + bannerColor + ';border-radius:var(--r);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">'
+    + '<div>'
+      + '<div style="font-size:14px;font-weight:700;color:' + bannerColor + '">' + bannerLabel + '</div>'
+      + '<div style="font-size:11px;color:var(--text3);margin-top:2px">'
+        + (lastCount ? 'Last count: ' + lastCount.date + ' \u00B7 $' + (lastCount.total_value||0).toFixed(0) + ' value' : 'No counts yet')
       + '</div>'
-    : '<div style="background:var(--bg2);border:1px dashed var(--border);border-radius:var(--r2);padding:14px 18px;margin-bottom:16px;font-size:12px;color:var(--text3);text-align:center">'
-        + 'No counts yet — do your first count to establish a baseline inventory value.'
-      + '</div>';
-
-  // ── Recent purchases ──────────────────────────────────────────────
-  var purchaseRows = recentPurch.map(function(p) {
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">'
-      + '<div>'
-        + '<div style="font-size:13px;color:var(--text)">' + (p.vendor||'—') + '</div>'
-        + '<div style="font-size:11px;color:var(--text3)">' + p.date + (p.notes ? ' · ' + p.notes : '') + '</div>'
-      + '</div>'
-      + '<div style="display:flex;align-items:center;gap:10px">'
-        + '<div style="font-size:14px;font-weight:600;color:var(--text)">$' + (p.total||0).toFixed(2) + '</div>'
-        + '<button data-pid="' + p.purchase_id + '" onclick="deletePurchase(this.dataset.pid)" style="background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:2px 6px">&times;</button>'
-      + '</div>'
-    + '</div>';
-  }).join('');
-
-  // ── Count schedule card ──────────────────────────────────────────────
-  var now2      = new Date();
-  var yr2       = now2.getFullYear();
-  var mo2       = now2.getMonth();
-  var day2      = now2.getDate();
-  var moName    = now2.toLocaleString('en-US',{month:'long'});
-  var lastDay2  = new Date(yr2, mo2+1, 0).getDate();
-
-  // Next count dates
-  var midDate  = new Date(yr2, mo2, 15);
-  var endDate2 = new Date(yr2, mo2, lastDay2);
-  if (midDate < now2 && endDate2 < now2) {
-    // Both passed — show next month
-    midDate  = new Date(yr2, mo2+1, 15);
-    endDate2 = new Date(yr2, mo2+1, new Date(yr2, mo2+2, 0).getDate());
-  } else if (midDate < now2) {
-    endDate2 = new Date(yr2, mo2, lastDay2);
-  }
-
-  var midStr  = midDate.toISOString().slice(0,10);
-  var endStr2 = endDate2.toISOString().slice(0,10);
-
-  // Check if counts exist for these dates
-  var counts       = DB.inventoryCounts || [];
-  var midDone      = counts.some(function(c){ return c.date === midStr; });
-  var endDone      = counts.some(function(c){ return c.date === endStr2; });
-  var midLabel     = 'Mid-Month · ' + midDate.toLocaleString('en-US',{month:'short',day:'numeric'});
-  var endLabel     = 'Month-End · ' + endDate2.toLocaleString('en-US',{month:'short',day:'numeric'});
-
-  function countBtn(label, period, date, done) {
-    return '<div style="flex:1;min-width:140px;background:var(--bg3);border:1px solid ' + (done?'var(--teal)':'var(--border)') + ';border-radius:var(--r);padding:12px 14px">'
-      + '<div style="font-size:10px;font-family:\'JetBrains Mono\',monospace;letter-spacing:1px;color:' + (done?'var(--teal)':'var(--text3)') + ';margin-bottom:4px">'
-        + (done ? '&#x2713; DONE' : 'UPCOMING')
-      + '</div>'
-      + '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px">' + label + '</div>'
-      + '<div style="font-size:11px;color:var(--text3);margin-bottom:10px">After close · ' + date + '</div>'
-      + (done
-          ? '<button class="btn btn-ghost btn-sm" style="width:100%" data-period="' + period + '" onclick="startNewCount(this.dataset.period)">Re-count</button>'
-          : '<button class="btn btn-primary btn-sm" style="width:100%" data-period="' + period + '" onclick="startNewCount(this.dataset.period)">Start Count</button>')
-    + '</div>';
-  }
-
-  var scheduleCard = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;margin-bottom:16px">'
-    + '<div style="font-size:10px;color:var(--orange);font-family:\'JetBrains Mono\',monospace;letter-spacing:1px;margin-bottom:4px">COUNT SCHEDULE</div>'
-    + '<div style="font-size:12px;color:var(--text2);margin-bottom:12px">Two counts per month — mid-month to catch problems early, month-end to close your books. Both done after your last customer leaves.</div>'
-    + '<div style="display:flex;gap:10px;flex-wrap:wrap">'
-      + countBtn(midLabel, 'mid', midStr, midDone)
-      + countBtn(endLabel, 'end', endStr2, endDone)
+    + '</div>'
+    + '<div style="display:flex;gap:8px">'
+      + '<button class="btn btn-primary" onclick="startInventoryCount()" style="min-height:44px">\u{1F4CB} Start Count</button>'
     + '</div>'
   + '</div>';
 
-  var _invSalesGap = renderSalesGapReport();
-
-  return '<div class="ptitle">INVENTORY <em>& COGS</em></div>'
-    + '<div class="psub">Two counts per month gives you an accurate cost of goods number — no guessing, no surprises at month-end.</div>'
-    + '<div class="action-bar no-print">'
-      + '<button class="btn btn-ghost" onclick="startNewCount(\'manual\')">+ Manual Count</button>'
-      + '<button class="btn btn-ghost" onclick="showAddPurchaseModal()">&#x2295; Log Purchase</button>'
-    + '</div>'
-    + '<div style="max-width:680px">'
-      + _invSalesGap
-      + scheduleCard
-      + cogsCard
-      + lastCountCard
-      + '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
-          + '<div style="font-size:10px;color:var(--text3);font-family:\'JetBrains Mono\',monospace;letter-spacing:1px">RECENT PURCHASES</div>'
-          + '<div style="font-size:11px;color:var(--text3)">Last 30 days: <strong style="color:var(--text)">$' + totalPurch30.toFixed(2) + '</strong></div>'
-        + '</div>'
-        + (purchaseRows || '<div style="font-size:12px;color:var(--text3);padding:8px 0">No purchases logged yet.</div>')
-        + '<button class="btn btn-ghost btn-sm" style="width:100%;margin-top:10px" onclick="showAddPurchaseModal()">+ Log Purchase / Invoice</button>'
+  // ── PERIOD FOOD COST CARD ─────────────────────────────────
+  var fcCard = '';
+  if (fc.ready) {
+    var pctColor = fc.food_cost_pct > 35 ? 'var(--danger)' : fc.food_cost_pct > 30 ? 'var(--warn)' : 'var(--teal)';
+    fcCard = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 20px;margin-bottom:16px">'
+      + '<div class="slabel" style="margin-bottom:10px">PERIOD FOOD COST \u00B7 ' + fc.period.start + ' to ' + fc.period.end + '</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:14px;font-size:12px">'
+        + '<div><div style="color:var(--text3);font-size:10px;font-family:monospace">BEGIN INV</div><div style="font-weight:700;font-size:16px">$' + (fc.begin_value||0).toFixed(0) + '</div></div>'
+        + '<div><div style="color:var(--text3);font-size:10px;font-family:monospace">+ PURCHASES</div><div style="font-weight:700;font-size:16px">$' + (fc.purchases||0).toFixed(0) + '</div></div>'
+        + '<div><div style="color:var(--text3);font-size:10px;font-family:monospace">- END INV</div><div style="font-weight:700;font-size:16px">$' + (fc.end_value||0).toFixed(0) + '</div></div>'
+        + '<div><div style="color:var(--text3);font-size:10px;font-family:monospace">= COGS</div><div style="font-weight:700;font-size:16px">$' + (fc.cogs||0).toFixed(0) + '</div></div>'
+        + '<div><div style="color:var(--text3);font-size:10px;font-family:monospace">SALES</div><div style="font-weight:700;font-size:16px">$' + (fc.sales||0).toFixed(0) + '</div></div>'
+        + '<div><div style="color:var(--text3);font-size:10px;font-family:monospace">FOOD COST %</div><div style="font-weight:700;font-size:20px;color:' + pctColor + '">' + (fc.food_cost_pct||0).toFixed(1) + '%</div></div>'
       + '</div>'
-      + (areas.length === 0
-          ? '<div style="margin-top:16px;background:rgba(255,107,43,.06);border:1px solid rgba(255,107,43,.2);border-radius:var(--r);padding:14px 16px;font-size:12px;color:var(--text2)">'
-              + '<strong style="color:var(--orange)">Setup tip:</strong> Assign storage areas to your ingredients in the '
-              + '<button class="btn btn-ghost btn-sm" onclick="go(\'ingredients\')">Ingredients</button> page to organize your count sheets.'
-            + '</div>'
-          : '')
     + '</div>';
+  } else {
+    fcCard = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;font-size:12px;color:var(--text3)">'
+      + '\u{1F4CA} <strong>Period Food Cost</strong> needs a beginning and ending count plus posted invoices. '
+      + (lastCount ? 'Run another count at the next checkpoint to enable this report.' : 'Start your first count to set the beginning inventory.')
+    + '</div>';
+  }
+
+  // ── REORDER CARD ──────────────────────────────────────────
+  var reorderCard = '';
+  if (reorders.length > 0) {
+    reorderCard = '<div style="background:var(--bg2);border:1px solid var(--border);border-left:4px solid var(--warn);border-radius:var(--r2);padding:14px 18px;margin-bottom:16px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+        + '<div class="slabel">\u26A0 REORDER NEEDED \u00B7 ' + reorders.length + ' ITEMS</div>'
+        + '<button class="btn btn-ghost btn-sm" onclick="showReorderListModal()">View all</button>'
+      + '</div>'
+      + reorders.slice(0, 3).map(function(r) {
+          return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px">'
+            + '<div style="flex:1"><strong>' + r.name + '</strong> \u00B7 <span style="color:var(--text3)">' + r.reason + '</span></div>'
+            + '<div style="font-family:monospace;color:var(--text2)">Order ' + r.packs_to_order + ' \u00D7 ' + r.pack_size + ' ' + r.pack_unit + '</div>'
+            + '<div style="font-size:11px;color:var(--text3);min-width:100px;text-align:right">' + r.vendor_name + '</div>'
+          + '</div>';
+        }).join('')
+    + '</div>';
+  }
+
+  // ── VARIANCE CARD ─────────────────────────────────────────
+  var varianceCard = '';
+  if (varianceReport && varianceReport.ready && varianceReport.report.length > 0) {
+    var highSev = varianceReport.report.filter(function(r){ return r.severity === 'high'; });
+    var medSev  = varianceReport.report.filter(function(r){ return r.severity === 'medium'; });
+    if (highSev.length || medSev.length) {
+      var col = highSev.length > 0 ? 'var(--danger)' : 'var(--warn)';
+      var totalCost = (highSev.concat(medSev)).reduce(function(s,r){ return s + Math.abs(r.diff_cost); }, 0);
+      varianceCard = '<div style="background:var(--bg2);border:1px solid var(--border);border-left:4px solid ' + col + ';border-radius:var(--r2);padding:14px 18px;margin-bottom:16px">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+          + '<div class="slabel" style="color:' + col + '">\u26A0 USAGE VARIANCE \u00B7 $' + totalCost.toFixed(0) + ' UNEXPLAINED</div>'
+          + '<button class="btn btn-ghost btn-sm" onclick="showVarianceModal()">View all</button>'
+        + '</div>'
+        + (highSev.concat(medSev)).slice(0, 3).map(function(r) {
+            return '<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:12px">'
+              + '<div style="font-weight:600;color:' + (r.severity==='high'?'var(--danger)':'var(--warn)') + '">' + r.name + '</div>'
+              + '<div style="font-size:11px;color:var(--text2);margin-top:2px">' + r.action + '</div>'
+            + '</div>';
+          }).join('')
+      + '</div>';
+    }
+  }
+
+  // ── INVOICE CARD ──────────────────────────────────────────
+  var recentInvoices = (DB.purchaseInvoices || [])
+    .filter(function(i){ return i.status === 'posted'; })
+    .slice().sort(function(a,b){ return b.invoice_date.localeCompare(a.invoice_date); })
+    .slice(0, 5);
+  var invoiceCard = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 18px;margin-bottom:16px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+      + '<div class="slabel">PURCHASE INVOICES</div>'
+      + '<button class="btn btn-primary btn-sm" onclick="showInvoiceUploadModal()">+ Upload Invoice</button>'
+    + '</div>'
+    + (recentInvoices.length === 0
+        ? '<div style="font-size:12px;color:var(--text3);padding:8px 0">No invoices yet. Upload a CSV from your distributor to track purchases and update ingredient prices.</div>'
+        : recentInvoices.map(function(inv) {
+            var lineCount = (DB.purchaseLines || []).filter(function(l){ return l.invoice_id === inv.id; }).length;
+            return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">'
+              + '<div style="flex:1"><strong>' + (inv.vendor || '(no vendor)') + '</strong> \u00B7 <span style="color:var(--text3)">' + inv.invoice_date + (inv.invoice_number?' \u00B7 #' + inv.invoice_number:'') + '</span></div>'
+              + '<div style="color:var(--text3);font-family:monospace">' + lineCount + ' lines</div>'
+              + '<div style="font-family:monospace;color:var(--text2);min-width:80px;text-align:right">$' + (inv.total||0).toFixed(2) + '</div>'
+            + '</div>';
+          }).join('')
+      )
+  + '</div>';
+
+  return '<div class="ptitle">INVENTORY</div>'
+    + '<div class="psub">Sheet-to-shelf counts on the 15th &amp; end of month \u00B7 invoice tracking \u00B7 reorder suggestions</div>'
+    + checkpointBanner
+    + fcCard
+    + reorderCard
+    + varianceCard
+    + invoiceCard;
 }
+
+function cancelInventoryCount() {
+  if (!confirm('Discard this count? Any entries will be lost.')) return;
+  window._activeCount = null;
+  drawMain();
+}
+
+function saveInventoryCount() {
+  if (!window._activeCount) return;
+  var counted = window._activeCount.lines.filter(function(l) { return l.qty != null && l.qty !== '' && parseFloat(l.qty) > 0; });
+  if (counted.length === 0) {
+    showToast('No items counted yet', 'error');
+    return;
+  }
+  if (!confirm('Save this count? ' + counted.length + ' items, $' + window._activeCount.total_value.toFixed(2) + ' value.')) return;
+  if (!Array.isArray(DB.inventoryCounts)) DB.inventoryCounts = [];
+  window._activeCount.status = 'completed';
+  window._activeCount.completed_at = new Date().toISOString();
+  DB.inventoryCounts.push(JSON.parse(JSON.stringify(window._activeCount)));
+  if (typeof safeSet === 'function') {
+    try { safeSet('kl_inventory_counts_v1', DB.inventoryCounts); } catch(e) {}
+  }
+  showToast('\u2713 Count saved \u00B7 $' + window._activeCount.total_value.toFixed(2) + ' total value', 'success');
+  window._activeCount = null;
+  drawMain();
+}
+
+function startInventoryCount() {
+  ensurePurchaseCollections();
+  seedDefaultStorageAreasIfEmpty();
+  var grouped = groupCountableItemsByArea();
+  var areaIds = Object.keys(grouped).filter(function(k){ return grouped[k].instances.length > 0; });
+  if (areaIds.length === 0) {
+    showToast('No countable items. Add ingredients (or mark prep recipes inventoriable).', 'error');
+    return;
+  }
+  var today = new Date().toISOString().slice(0, 10);
+  // Pre-populate count instance lines from current grouped view
+  var lines = [];
+  areaIds.forEach(function(areaId) {
+    grouped[areaId].instances.forEach(function(inst) {
+      lines.push({
+        item_id:         inst.item.id,
+        item_kind:       inst.item._kind,           // 'ingredient' or 'recipe'
+        item_name:       inst.item.name,
+        location_id:     inst.location_id,
+        storage_area_id: inst.storage_area_id,
+        shelf:           inst.shelf,
+        position:        inst.position,
+        count_unit:      inst.count_unit,
+        qty:             null,
+        line_value:      0,
+        counted:         false,
+      });
+    });
+  });
+  window._activeCount = {
+    id:           'cnt-' + Date.now(),
+    date:         today,
+    type:         (typeof getNextCountCheckpoint === 'function')
+                    ? getNextCountCheckpoint(today).type
+                    : 'mid_month',
+    started_at:   new Date().toISOString(),
+    lines:        lines,
+    total_value:  0,
+    status:       'in_progress',
+  };
+  drawMain();
+}
+
+function renderSheetToShelfCount() {
+  var grouped = groupCountableItemsByArea();
+  var areaOrder = Object.keys(grouped)
+    .filter(function(k){ return grouped[k].instances.length > 0 || k !== '_unassigned'; })
+    .sort(function(a, b) {
+      var oa = (grouped[a].area && grouped[a].area.count_order) || 9999;
+      var ob = (grouped[b].area && grouped[b].area.count_order) || 9999;
+      return oa - ob;
+    });
+
+  // Roll up totals
+  var totalValue = 0;
+  var counted = 0;
+  var totalLines = window._activeCount.lines.length;
+  window._activeCount.lines.forEach(function(line) {
+    if (line.qty != null && line.qty !== '' && parseFloat(line.qty) > 0) {
+      counted++;
+      var item = _findItemForLine(line);
+      line.line_value = item ? getCountInstanceCost(line.qty, line.count_unit, item) : 0;
+      totalValue += line.line_value;
+    }
+  });
+  window._activeCount.total_value = round2(totalValue);
+
+  var headerCard = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">'
+    + '<div>'
+      + '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;letter-spacing:1.5px">COUNT IN PROGRESS</div>'
+      + '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + window._activeCount.date + ' \u00B7 ' + counted + '/' + totalLines + ' counted \u00B7 <strong style="color:var(--teal)">$' + totalValue.toFixed(2) + '</strong> value</div>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px">'
+      + '<button class="btn btn-ghost" onclick="cancelInventoryCount()">Cancel</button>'
+      + '<button class="btn btn-primary" onclick="saveInventoryCount()" style="min-height:44px">Save Count</button>'
+    + '</div>'
+  + '</div>';
+
+  var areasHtml = areaOrder.map(function(areaKey) {
+    var grp = grouped[areaKey];
+    if (!grp || grp.instances.length === 0) return '';
+    var instancesHtml = grp.instances.map(function(inst, idx) {
+      var line = window._activeCount.lines.find(function(l) {
+        return l.item_id === inst.item.id && l.location_id === inst.location_id;
+      });
+      if (!line) return '';
+      var item = _findItemForLine(line);
+      if (!item) return '';
+      var counted = line.qty != null && line.qty !== '' && parseFloat(line.qty) > 0;
+      var lineVal = counted ? getCountInstanceCost(line.qty, line.count_unit, item) : 0;
+      // Schema bridge: legacy ingredients use true_unit_cost (no pack_size/price)
+      // Show the RECEIVED price + unit so operator knows what the system thinks
+      var unitCost = item.true_unit_cost || item.price || 0;
+      var displayUnit = item.unit || 'ea';
+      var caseLabel;
+      if (item.pack_size > 1 && item.price) {
+        // BS-style: $48 per case of 10 lb → also show per-unit
+        caseLabel = '$' + item.price.toFixed(2) + ' / case of ' + item.pack_size + ' ' + (item.pack_unit || displayUnit)
+                  + ' · $' + (item.price / item.pack_size).toFixed(2) + '/' + displayUnit;
+      } else {
+        // Legacy: $4.94/each (no case info)
+        caseLabel = '$' + unitCost.toFixed(2) + '/' + displayUnit;
+      }
+      var uomOpts = getRecommendedUoMs(item);
+      var uomDropdown = '<select onchange="updateCountLineUoM(\'' + line.item_id + '\',\'' + (line.location_id||'') + '\',this.value)" '
+        + 'style="height:36px;font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text1);padding:0 6px;min-width:78px">'
+        + uomOpts.map(function(u){
+            return '<option value="' + u + '"' + (line.count_unit === u ? ' selected' : '') + '>' + u + '</option>';
+          }).join('')
+      + '</select>';
+      var qtyKey = line.item_id + '__' + (line.location_id || 'noloc');
+      var qtyInput = '<input type="number" step="0.01" min="0" value="' + (line.qty != null ? line.qty : '') + '" '
+        + 'placeholder="qty" '
+        + 'oninput="updateCountLineQty(\'' + line.item_id + '\',\'' + (line.location_id||'') + '\',this.value)" '
+        + 'onchange="_refreshCountLineValue(\'' + qtyKey + '\')" '
+        + 'style="width:74px;height:36px;font-size:14px;font-weight:600;text-align:center;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text1);padding:0 4px">';
+      var extPrice = '<span id="ext-' + qtyKey + '" style="min-width:78px;text-align:right;font-family:monospace;font-size:13px;color:' + (counted ? 'var(--teal)' : 'var(--text3)') + ';font-weight:600">$' + lineVal.toFixed(2) + '</span>';
+      // Up/down position arrows — only if multiple items in this area
+      var upDownButtons = grp.instances.length > 1
+        ? '<div style="display:flex;flex-direction:column;gap:2px">'
+          + '<button onclick="moveCountLocationPosition(\'' + line.item_id + '\',\'' + line.item_kind + '\',\'' + (line.location_id||'') + '\',\'up\');setTimeout(drawMain,50)" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-size:9px;width:24px;height:18px;line-height:1;cursor:pointer;border-radius:3px" title="Move up"' + (idx === 0 ? ' disabled' : '') + '>\u25B2</button>'
+          + '<button onclick="moveCountLocationPosition(\'' + line.item_id + '\',\'' + line.item_kind + '\',\'' + (line.location_id||'') + '\',\'down\');setTimeout(drawMain,50)" style="background:transparent;border:1px solid var(--border);color:var(--text3);font-size:9px;width:24px;height:18px;line-height:1;cursor:pointer;border-radius:3px" title="Move down"' + (idx === grp.instances.length-1 ? ' disabled' : '') + '>\u25BC</button>'
+        + '</div>'
+        : '';
+      var addAnotherBtn = '<button onclick="addCountInstanceForItem(\'' + line.item_id + '\',\'' + line.item_kind + '\',\'' + areaKey + '\')" style="background:transparent;border:1px dashed var(--border);color:var(--text3);font-size:10px;padding:2px 6px;border-radius:3px;cursor:pointer;margin-left:6px" title="Add another count instance for this item">+ another</button>';
+      var prepBadge = line.item_kind === 'recipe'
+        ? '<span style="font-size:9px;background:rgba(245,158,11,.15);color:var(--warn);padding:1px 5px;border-radius:8px;font-weight:700;margin-left:5px">PREP</span>'
+        : '';
+      return '<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);background:' + (counted ? 'rgba(45,212,191,.04)' : 'transparent') + '">'
+        + upDownButtons
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:13px;font-weight:500;color:var(--text1)">' + (item.name || '').replace(' (prep)', '') + prepBadge + '</div>'
+          + '<div style="font-size:10px;color:var(--text3);font-family:monospace">' + caseLabel + '</div>'
+        + '</div>'
+        + uomDropdown
+        + qtyInput
+        + extPrice
+        + addAnotherBtn
+      + '</div>';
+    }).join('');
+
+    var areaTotal = window._activeCount.lines
+      .filter(function(l){ return l.storage_area_id === areaKey; })
+      .reduce(function(s,l){
+        var item = _findItemForLine(l);
+        return s + (item ? getCountInstanceCost(l.qty, l.count_unit, item) : 0);
+      }, 0);
+
+    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:14px;overflow:hidden">'
+      + '<div style="padding:10px 14px;background:var(--bg3);font-family:\'Bebas Neue\',sans-serif;font-size:14px;letter-spacing:1.5px;color:var(--text1);display:flex;align-items:center;gap:8px">'
+        + '<span>' + (grp.area.icon || '') + '</span>'
+        + '<span>' + grp.area.name.toUpperCase() + '</span>'
+        + '<span style="font-size:10px;color:var(--text3);font-family:monospace;font-weight:400;margin-left:auto">' + grp.instances.length + ' lines \u00B7 $' + areaTotal.toFixed(2) + '</span>'
+      + '</div>'
+      + instancesHtml
+    + '</div>';
+  }).join('');
+
+  return '<div class="ptitle">SHEET-TO-SHELF COUNT</div>'
+    + '<div class="psub">Count in shelf order. Each item line has its own UoM &mdash; chicken in case, then chicken on the line in 6oz bags.</div>'
+    + headerCard
+    + areasHtml;
+}
+
+// Helpers used inside the count
+function _findItemForLine(line) {
+  if (!line) return null;
+  if (line.item_kind === 'recipe') {
+    var r = (DB.recipes || []).find(function(rr){ return rr.recipe_id === line.item_id; });
+    if (!r) return null;
+    return {
+      id:         r.recipe_id,
+      name:       r.name + ' (prep)',
+      category:   'Prep Recipe',
+      unit:       r.yield_unit || 'each',
+      pack_size:  r.yield_qty || 1,
+      pack_unit:  r.yield_unit || 'each',
+      price:      r.cost || 0,
+      _kind:      'recipe',
+    };
+  }
+  var found = (DB.ingredients || []).find(function(i){ return (i.id || i.ingredient_id) === line.item_id; });
+  if (!found) return null;
+  // Schema bridge: ensure price field is populated from true_unit_cost (legacy schema)
+  if (!found.price && found.true_unit_cost) {
+    return Object.assign({}, found, { price: found.true_unit_cost });
+  }
+  return found;
+}
+
+function updateCountLineQty(itemId, locationId, value) {
+  if (!window._activeCount) return;
+  var line = window._activeCount.lines.find(function(l) {
+    return l.item_id === itemId && (l.location_id || '') === (locationId || '');
+  });
+  if (!line) return;
+  line.qty = value === '' ? null : parseFloat(value);
+}
+
+function updateCountLineUoM(itemId, locationId, newUnit) {
+  if (!window._activeCount) return;
+  var line = window._activeCount.lines.find(function(l) {
+    return l.item_id === itemId && (l.location_id || '') === (locationId || '');
+  });
+  if (!line) return;
+  line.count_unit = newUnit;
+  // Persist to the item's count_locations[] so this UoM sticks for future counts
+  if (locationId) {
+    var item = line.item_kind === 'recipe'
+      ? (DB.recipes || []).find(function(r){ return r.recipe_id === itemId; })
+      : (DB.ingredients || []).find(function(i){ return (i.id || i.ingredient_id) === itemId; });
+    if (item && Array.isArray(item.count_locations)) {
+      var loc = item.count_locations.find(function(l){ return l.id === locationId; });
+      if (loc) {
+        loc.count_unit = newUnit;
+        if (line.item_kind === 'recipe' && typeof saveRecipes === 'function') saveRecipes();
+        if (line.item_kind === 'ingredient' && typeof saveIngredients === 'function') saveIngredients();
+      }
+    }
+  }
+  // Refresh ext-price display
+  var qtyKey = itemId + '__' + (locationId || 'noloc');
+  _refreshCountLineValue(qtyKey);
+}
+
+function _refreshCountLineValue(qtyKey) {
+  if (!window._activeCount) return;
+  var parts = qtyKey.split('__');
+  var itemId = parts[0];
+  var locationId = parts[1] === 'noloc' ? '' : parts[1];
+  var line = window._activeCount.lines.find(function(l) {
+    return l.item_id === itemId && (l.location_id || '') === locationId;
+  });
+  if (!line) return;
+  var item = _findItemForLine(line);
+  if (!item) return;
+  var val = getCountInstanceCost(line.qty, line.count_unit, item);
+  var el = document.getElementById('ext-' + qtyKey);
+  if (el) {
+    el.textContent = '$' + val.toFixed(2);
+    el.style.color = (val > 0) ? 'var(--teal)' : 'var(--text3)';
+  }
+  // Also refresh header total live
+  var total = 0;
+  window._activeCount.lines.forEach(function(l) {
+    var it = _findItemForLine(l);
+    if (it && l.qty != null && l.qty !== '' && parseFloat(l.qty) > 0) {
+      total += getCountInstanceCost(l.qty, l.count_unit, it);
+    }
+  });
+  window._activeCount.total_value = round2(total);
+}
+
+function addCountInstanceForItem(itemId, kind, areaId) {
+  // Create a new count_location for this item, then re-render
+  var newLoc = addCountLocation(itemId, kind, areaId);
+  if (!newLoc) { showToast('Could not add another instance', 'error'); return; }
+  // Add a corresponding line to the active count
+  if (window._activeCount) {
+    var item = kind === 'recipe'
+      ? (DB.recipes || []).find(function(r){ return r.recipe_id === itemId; })
+      : (DB.ingredients || []).find(function(i){ return (i.id || i.ingredient_id) === itemId; });
+    if (item) {
+      window._activeCount.lines.push({
+        item_id:         itemId,
+        item_kind:       kind,
+        item_name:       item.name || (item.recipe_id || ''),
+        location_id:     newLoc.id,
+        storage_area_id: areaId,
+        shelf:           newLoc.shelf || '',
+        position:        newLoc.position || 999,
+        count_unit:      newLoc.count_unit || (kind === 'recipe' ? (item.yield_unit || 'each') : (item.unit || 'ea')),
+        qty:             null,
+        line_value:      0,
+        counted:         false,
+      });
+    }
+  }
+  drawMain();
+}
+
+
+// ═══════════════════════════════════════════════════════════
+// INVOICE UPLOAD MODAL + REVIEW
+// ═══════════════════════════════════════════════════════════
+
+function showInvoiceUploadModal() {
+  ensurePurchaseCollections();
+  var ex = document.getElementById('_inv_modal'); if (ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.className = 'modal-overlay'; ov.id = '_inv_modal';
+  ov.innerHTML = '<div class="modal-box" style="max-width:560px">'
+    + '<div class="modal-title">UPLOAD INVOICE'
+      + '<button class="modal-close" onclick="document.getElementById(\'_inv_modal\').remove()">\u00D7</button>'
+    + '</div>'
+    + '<div style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.5">'
+      + 'Upload a CSV from your distributor (US Foods, Sysco, etc.) or paste invoice data. We\u2019ll match each line to your inventory items \u2014 you review before posting.'
+    + '</div>'
+    + '<div class="form-group">'
+      + '<label class="form-label">Upload CSV file</label>'
+      + '<input type="file" accept=".csv,.txt" onchange="readInvoiceFile(this)" style="display:block">'
+    + '</div>'
+    + '<div class="form-group">'
+      + '<label class="form-label">Or paste invoice CSV text</label>'
+      + '<textarea id="inv-csv-text" class="form-input" rows="6" placeholder="Item,Qty,Unit Price,Total..." style="font-family:monospace;font-size:11px"></textarea>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px">'
+      + '<button class="btn btn-primary" onclick="parseAndReviewInvoice()">Parse & Review</button>'
+      + '<button class="btn btn-ghost" onclick="document.getElementById(\'_inv_modal\').remove()">Cancel</button>'
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(ov);
+}
+
+function readInvoiceFile(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var ta = document.getElementById('inv-csv-text');
+    if (ta) ta.value = e.target.result;
+    parseAndReviewInvoice();
+  };
+  reader.readAsText(file);
+}
+
+function parseAndReviewInvoice() {
+  var csv = (document.getElementById('inv-csv-text') || {}).value || '';
+  if (!csv.trim()) { showToast('Paste CSV or upload a file first', 'error'); return; }
+  var result = parseInvoiceCSV(csv, 'csv');
+  if (result.errors.length) {
+    showToast(result.errors[0], 'error');
+    return;
+  }
+  window._reviewInvoice = result.invoice;
+  window._reviewLines = result.lines;
+  showInvoiceReviewModal();
+}
+
+function showInvoiceReviewModal() {
+  var inv = window._reviewInvoice;
+  var lines = window._reviewLines;
+  if (!inv || !lines) return;
+
+  var ex = document.getElementById('_inv_modal'); if (ex) ex.remove();
+  var ex2 = document.getElementById('_inv_review'); if (ex2) ex2.remove();
+  var ov = document.createElement('div');
+  ov.className = 'modal-overlay'; ov.id = '_inv_review';
+
+  var unmatched = lines.filter(function(l) { return !l.matched_inventory_item_id; }).length;
+
+  ov.innerHTML = '<div class="modal-box" style="max-width:760px;max-height:90vh;display:flex;flex-direction:column">'
+    + '<div class="modal-title">REVIEW INVOICE \u00B7 ' + lines.length + ' LINES'
+      + '<button class="modal-close" onclick="document.getElementById(\'_inv_review\').remove()">\u00D7</button>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;font-size:12px">'
+      + '<div class="form-group" style="margin:0">'
+        + '<label class="form-label">Vendor</label>'
+        + '<input id="rev-vendor" class="form-input" value="' + (inv.vendor || '').replace(/"/g, '&quot;') + '">'
+      + '</div>'
+      + '<div class="form-group" style="margin:0">'
+        + '<label class="form-label">Invoice date</label>'
+        + '<input id="rev-date" class="form-input" type="date" value="' + inv.invoice_date + '">'
+      + '</div>'
+      + '<div class="form-group" style="margin:0">'
+        + '<label class="form-label">Invoice #</label>'
+        + '<input id="rev-num" class="form-input" value="' + (inv.invoice_number || '').replace(/"/g, '&quot;') + '">'
+      + '</div>'
+    + '</div>'
+    + (unmatched > 0
+        ? '<div style="padding:8px 12px;background:rgba(245,158,11,.1);border-radius:4px;margin-bottom:10px;font-size:12px;color:var(--warn)">\u26A0 ' + unmatched + ' line' + (unmatched !== 1 ? 's' : '') + ' need to be matched to inventory items below</div>'
+        : '<div style="padding:8px 12px;background:rgba(45,212,191,.1);border-radius:4px;margin-bottom:10px;font-size:12px;color:var(--teal)">\u2713 All lines matched to inventory items</div>')
+    + '<div style="overflow-y:auto;flex:1;border:1px solid var(--border);border-radius:var(--r);background:var(--bg2)">'
+      + lines.map(function(line, idx) {
+          var matchOpts = '<option value="">-- Pick inventory item --</option>'
+            + (DB.ingredients || []).map(function(item) {
+                var sel = line.matched_inventory_item_id === item.id ? ' selected' : '';
+                return '<option value="' + item.id + '"' + sel + '>' + item.name + '</option>';
+              }).join('');
+          var matchColor = line.matched_inventory_item_id
+            ? (line.confidence_score >= 0.9 ? 'var(--teal)' : line.confidence_score >= 0.5 ? 'var(--warn)' : 'var(--text3)')
+            : 'var(--danger)';
+          var confLabel = line.matched_inventory_item_id
+            ? (line.confidence_score >= 0.9 ? 'auto-matched' : line.confidence_score >= 0.5 ? 'best guess' : 'low confidence')
+            : 'unmatched';
+          return '<div style="padding:10px 12px;border-bottom:1px solid var(--border);font-size:12px">'
+            + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+              + '<div style="flex:1;font-weight:600;color:var(--text1)">' + line.raw_item_name + '</div>'
+              + '<div style="font-family:monospace;color:var(--text3)">' + line.qty + ' \u00D7 $' + line.cost_per_unit.toFixed(2) + ' = <strong style="color:var(--text1)">$' + line.total_cost.toFixed(2) + '</strong></div>'
+            + '</div>'
+            + '<div style="display:flex;align-items:center;gap:8px">'
+              + '<span style="font-size:10px;color:' + matchColor + ';min-width:80px">' + confLabel + '</span>'
+              + '<select onchange="updateInvoiceLineMatch(' + idx + ', this.value)" style="flex:1;height:32px;font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text1);padding:0 6px">' + matchOpts + '</select>'
+            + '</div>'
+          + '</div>';
+        }).join('')
+    + '</div>'
+    + '<div style="margin-top:12px;display:flex;align-items:center;justify-content:space-between">'
+      + '<div style="font-size:13px;color:var(--text2)">Total: <strong style="color:var(--text1)">$' + inv.total.toFixed(2) + '</strong></div>'
+      + '<div style="display:flex;gap:8px">'
+        + '<button class="btn btn-ghost" onclick="document.getElementById(\'_inv_review\').remove()">Cancel</button>'
+        + '<button class="btn btn-primary" onclick="commitReviewedInvoice()">\u2713 Post Invoice</button>'
+      + '</div>'
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(ov);
+}
+
+function updateInvoiceLineMatch(lineIdx, ingredientId) {
+  if (!window._reviewLines || !window._reviewLines[lineIdx]) return;
+  window._reviewLines[lineIdx].matched_inventory_item_id = ingredientId || null;
+  window._reviewLines[lineIdx].confidence_score = ingredientId ? 1.0 : 0; // user-set = max confidence
+  showInvoiceReviewModal(); // re-render to update unmatched count
+}
+
+function commitReviewedInvoice() {
+  var inv = window._reviewInvoice;
+  var lines = window._reviewLines;
+  if (!inv || !lines) return;
+  // Capture edits from form
+  inv.vendor         = (document.getElementById('rev-vendor') || {}).value || inv.vendor;
+  inv.invoice_date   = (document.getElementById('rev-date')   || {}).value || inv.invoice_date;
+  inv.invoice_number = (document.getElementById('rev-num')    || {}).value || inv.invoice_number;
+  var unmatched = lines.filter(function(l) { return !l.matched_inventory_item_id; }).length;
+  if (unmatched > 0 && !confirm(unmatched + ' lines are unmatched and won\u2019t affect inventory. Post anyway?')) return;
+  commitInvoice(inv, lines);
+  window._reviewInvoice = null;
+  window._reviewLines = null;
+  var modal = document.getElementById('_inv_review'); if (modal) modal.remove();
+  showToast('\u2713 Invoice posted \u00B7 $' + inv.total.toFixed(2) + ' \u00B7 prices updated', 'success');
+  drawMain();
+}
+
+// ═══════════════════════════════════════════════════════════
+// REORDER + VARIANCE MODALS
+// ═══════════════════════════════════════════════════════════
+
+function showReorderListModal() {
+  var suggestions = getReorderSuggestions();
+  var ex = document.getElementById('_reorder_modal'); if (ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.className = 'modal-overlay'; ov.id = '_reorder_modal';
+
+  // Group by vendor
+  var byVendor = {};
+  suggestions.forEach(function(s) {
+    var key = s.vendor_name || '(no vendor)';
+    if (!byVendor[key]) byVendor[key] = [];
+    byVendor[key].push(s);
+  });
+
+  ov.innerHTML = '<div class="modal-box" style="max-width:680px;max-height:90vh;display:flex;flex-direction:column">'
+    + '<div class="modal-title">REORDER SUGGESTIONS \u00B7 ' + suggestions.length + ' ITEMS'
+      + '<button class="modal-close" onclick="document.getElementById(\'_reorder_modal\').remove()">\u00D7</button>'
+    + '</div>'
+    + '<div style="overflow-y:auto;flex:1">'
+      + Object.keys(byVendor).map(function(vendor) {
+          var items = byVendor[vendor];
+          var total = items.reduce(function(s,i){ return s + (i.estimated_cost||0); }, 0);
+          return '<div style="margin-bottom:14px">'
+            + '<div style="padding:8px 12px;background:var(--bg3);font-family:\'Bebas Neue\',sans-serif;font-size:13px;letter-spacing:1.5px;display:flex;justify-content:space-between">'
+              + '<span>' + vendor.toUpperCase() + ' \u00B7 ' + items.length + ' items</span>'
+              + '<span style="font-family:monospace;font-weight:400">~$' + total.toFixed(2) + '</span>'
+            + '</div>'
+            + items.map(function(s) {
+                return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);font-size:12px">'
+                  + '<div style="flex:1;min-width:0">'
+                    + '<div style="font-weight:600;color:var(--text1)">' + s.name + '</div>'
+                    + '<div style="font-size:10px;color:var(--text3);margin-top:2px">' + s.reason + '</div>'
+                  + '</div>'
+                  + '<div style="text-align:right;min-width:120px;font-family:monospace">'
+                    + '<div style="color:var(--text1);font-weight:600">' + s.packs_to_order + ' \u00D7 ' + s.pack_size + ' ' + s.pack_unit + '</div>'
+                    + '<div style="font-size:10px;color:var(--text3)">~$' + s.estimated_cost.toFixed(2) + '</div>'
+                  + '</div>'
+                + '</div>';
+              }).join('')
+          + '</div>';
+        }).join('')
+      + (suggestions.length === 0 ? '<div style="padding:30px;text-align:center;color:var(--text3)">No items below par. Inventory looks good.</div>' : '')
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(ov);
+}
+
+function showVarianceModal() {
+  var counts = (DB.inventoryCounts || []).slice().sort(function(a,b){ return a.date.localeCompare(b.date); });
+  if (counts.length < 2) { showToast('Need 2 counts to compute variance', 'info'); return; }
+  var prev = counts[counts.length - 2];
+  var curr = counts[counts.length - 1];
+  var report = getVarianceReport(prev.date, curr.date);
+  if (!report.ready) { showToast(report.message, 'info'); return; }
+
+  var ex = document.getElementById('_var_modal'); if (ex) ex.remove();
+  var ov = document.createElement('div');
+  ov.className = 'modal-overlay'; ov.id = '_var_modal';
+  ov.innerHTML = '<div class="modal-box" style="max-width:760px;max-height:90vh;display:flex;flex-direction:column">'
+    + '<div class="modal-title">USAGE VARIANCE \u00B7 ' + prev.date + ' to ' + curr.date
+      + '<button class="modal-close" onclick="document.getElementById(\'_var_modal\').remove()">\u00D7</button>'
+    + '</div>'
+    + '<div style="overflow-y:auto;flex:1">'
+      + report.report.filter(function(r){ return r.severity !== 'ok'; }).map(function(r) {
+          var col = r.severity === 'high' ? 'var(--danger)' : 'var(--warn)';
+          return '<div style="padding:12px 14px;border-bottom:1px solid var(--border);border-left:3px solid ' + col + '">'
+            + '<div style="font-weight:700;color:var(--text1);margin-bottom:4px">' + r.name + '</div>'
+            + '<div style="font-size:12px;color:var(--text2);margin-bottom:6px">' + r.action + '</div>'
+            + '<div style="font-size:11px;color:var(--text3);font-family:monospace">'
+              + 'Theoretical: ' + r.theoretical_qty + ' \u00B7 Actual: ' + r.actual_qty + ' \u00B7 Diff: ' + (r.diff_qty>0?'+':'') + r.diff_qty + ' (' + (r.diff_pct>0?'+':'') + r.diff_pct + '%) \u00B7 $' + (r.diff_cost>0?'+':'') + r.diff_cost.toFixed(2)
+            + '</div>'
+          + '</div>';
+        }).join('')
+      + (report.report.filter(function(r){ return r.severity !== 'ok'; }).length === 0
+          ? '<div style="padding:30px;text-align:center;color:var(--teal)">\u2713 No significant variances. Usage tracks expected within 5%.</div>'
+          : '')
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(ov);
+}
+
+
 
 // ── COUNT SHEET RENDERER ──────────────────────────────────────────────
 function renderCountSheet(areas) {
