@@ -837,7 +837,7 @@ a,button,.btn,.ni,.nb-divider-clickable,.imp-btn,.rab,.setup-opt,.binder-card{cu
 </div>
 <div id="sb"></div>
 <div id="main"></div>
-<div data-build-id="build-010727" style="position:fixed;bottom:6px;left:6px;font-family:monospace;font-size:9px;color:rgba(255,255,255,.25);pointer-events:none;z-index:99">build-010727</div>
+<div data-build-id="build-021046" style="position:fixed;bottom:6px;left:6px;font-family:monospace;font-size:9px;color:rgba(255,255,255,.25);pointer-events:none;z-index:99">build-021046</div>
 <div id="kl-print-doc"></div>
 
 
@@ -31364,55 +31364,68 @@ function _qtyManualEdit(itemId, locationId, qtyKey) {
  * Returns the full hybrid input HTML for one count line.
  */
 function renderHybridQtyInput(item, line, qtyKey) {
-  var presets = getQtyPresets(item, line.count_unit);
-  var step = getQtyStep(item, line.count_unit);
+  // Phase 14i v2: speed-optimized. ONE row.
+  // Big tap-to-type value field + inline preset chips ONLY for bar/pack items.
+  // No stepper buttons (mobile keypad is faster than tap-tap-tap).
   var currentVal = (line.qty != null && line.qty !== '') ? parseFloat(line.qty) : null;
-  var displayVal = currentVal != null ? (currentVal % 1 === 0 ? String(currentVal) : currentVal.toFixed(2)) : '0';
+  var displayVal = currentVal != null ? (currentVal % 1 === 0 ? String(currentVal) : currentVal.toFixed(2)) : '';
   var idJSON = JSON.stringify(line.item_id);
   var locJSON = JSON.stringify(line.location_id || '');
   var keyJSON = JSON.stringify(qtyKey);
 
-  // ± buttons + value display
-  var stepperHtml = '<div style="display:flex;align-items:center;gap:4px">'
-    // Decrement button
-    + '<button '
-      + 'onpointerdown="_qtyStartHold(this,' + idJSON + ',' + locJSON + ',-' + step + ',' + keyJSON + ',0)" '
-      + 'onpointerup="_qtyEndHold()" '
-      + 'onpointerleave="_qtyEndHold()" '
-      + 'onclick="_qtyChange(' + idJSON + ',' + locJSON + ',-' + step + ',' + keyJSON + ',0)" '
-      + 'style="width:42px;height:42px;font-size:22px;font-weight:700;background:var(--bg3);border:1.5px solid var(--border);border-radius:6px;color:var(--text1);cursor:pointer;line-height:1;touch-action:manipulation">'
-      + '\u2212'
-    + '</button>'
-    // Value display (tap to type)
-    + '<div id="qtyval-' + qtyKey + '" '
-      + 'onclick="_qtyManualEdit(' + idJSON + ',' + locJSON + ',' + keyJSON + ')" '
-      + 'style="min-width:60px;height:42px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;color:var(--text1);cursor:pointer;font-family:\'JetBrains Mono\',monospace">'
-      + displayVal
-    + '</div>'
-    // Increment button
-    + '<button '
-      + 'onpointerdown="_qtyStartHold(this,' + idJSON + ',' + locJSON + ',' + step + ',' + keyJSON + ')" '
-      + 'onpointerup="_qtyEndHold()" '
-      + 'onpointerleave="_qtyEndHold()" '
-      + 'onclick="_qtyChange(' + idJSON + ',' + locJSON + ',' + step + ',' + keyJSON + ')" '
-      + 'style="width:42px;height:42px;font-size:22px;font-weight:700;background:var(--bg3);border:1.5px solid var(--border);border-radius:6px;color:var(--text1);cursor:pointer;line-height:1;touch-action:manipulation">'
-      + '+'
-    + '</button>'
-  + '</div>';
+  // Determine if this item should show preset chips
+  // Per spec: Spirits/Wine/Beer (partial-bottle counts) + items with pack_size > 1 (case counts)
+  var cat = item.category || '';
+  var isBarCategory = /spirits|bar mix|bar syrup|wine|beer/i.test(cat);
+  var unitDef = (typeof getUnitDef === 'function') ? getUnitDef(line.count_unit) : null;
+  var isPackUnit = unitDef && unitDef.type === 'pack';
+  var packQty = parseFloat(item.purchase_quantity || item.pack_size) || 1;
+  var hasRealPack = packQty > 1;
 
-  // Preset chips
-  var presetHtml = '<div style="display:flex;gap:3px;margin-top:4px;flex-wrap:wrap">'
-    + presets.map(function(p) {
-        var pStr = (p % 1 === 0) ? String(p) : p.toFixed(2);
-        return '<button onclick="_qtySetPreset(' + idJSON + ',' + locJSON + ',' + p + ',' + keyJSON + ')" '
-          + 'style="min-width:36px;height:28px;font-size:12px;font-weight:600;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text2);cursor:pointer;padding:0 6px;touch-action:manipulation">'
-          + pStr
-        + '</button>';
-      }).join('')
-  + '</div>';
+  var presets = null;
+  if (isBarCategory && !isPackUnit) {
+    // Bar items counted in floz / oz: partial-bottle presets
+    presets = [0.25, 0.5, 0.75, 1];
+  } else if (isPackUnit || hasRealPack) {
+    // Items counted in case/bottle/keg: small whole numbers
+    presets = [1, 2, 3, 4];
+  }
+  // All other categories: no preset chips, just typed entry
 
-  return '<div>'
-    + stepperHtml
+  // Big tap-to-type value field. Mobile auto-shows numeric keypad via inputmode.
+  var valueField = '<input '
+    + 'type="text" '
+    + 'inputmode="decimal" '
+    + 'value="' + displayVal + '" '
+    + 'placeholder="0" '
+    + 'onfocus="this.select()" '
+    + 'onchange="_qtySetPreset(' + idJSON + ',' + locJSON + ',this.value,' + keyJSON + ')" '
+    + 'style="width:78px;height:44px;font-size:18px;font-weight:700;text-align:center;'
+    + 'background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;'
+    + 'color:var(--text1);padding:0 4px;font-family:\'JetBrains Mono\',monospace;'
+    + 'caret-color:var(--orange)">';
+
+  // Inline preset chips (only when applicable)
+  var presetHtml = '';
+  if (presets) {
+    presetHtml = '<div style="display:flex;gap:3px;margin-left:6px">'
+      + presets.map(function(p) {
+          var pStr = (p % 1 === 0) ? String(p) : (p === 0.25 ? '\u00BC' : p === 0.5 ? '\u00BD' : p === 0.75 ? '\u00BE' : p.toFixed(2));
+          var isActive = currentVal === p;
+          return '<button onclick="_qtySetPreset(' + idJSON + ',' + locJSON + ',' + p + ',' + keyJSON + ');setTimeout(drawMain,30)" '
+            + 'style="min-width:32px;height:36px;font-size:13px;font-weight:600;'
+            + 'background:' + (isActive ? 'var(--orange)' : 'var(--bg3)') + ';'
+            + 'color:' + (isActive ? '#fff' : 'var(--text2)') + ';'
+            + 'border:1px solid ' + (isActive ? 'var(--orange)' : 'var(--border)') + ';'
+            + 'border-radius:4px;cursor:pointer;padding:0 6px;touch-action:manipulation">'
+            + pStr
+          + '</button>';
+        }).join('')
+    + '</div>';
+  }
+
+  return '<div style="display:flex;align-items:center">'
+    + valueField
     + presetHtml
   + '</div>';
 }
