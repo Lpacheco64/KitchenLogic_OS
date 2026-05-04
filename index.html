@@ -837,7 +837,7 @@ a,button,.btn,.ni,.nb-divider-clickable,.imp-btn,.rab,.setup-opt,.binder-card{cu
 </div>
 <div id="sb"></div>
 <div id="main"></div>
-<div data-build-id="build-002944" style="position:fixed;bottom:6px;left:6px;font-family:monospace;font-size:9px;color:rgba(255,255,255,.25);pointer-events:none;z-index:99">build-002944</div>
+<div data-build-id="build-010727" style="position:fixed;bottom:6px;left:6px;font-family:monospace;font-size:9px;color:rgba(255,255,255,.25);pointer-events:none;z-index:99">build-010727</div>
 <div id="kl-print-doc"></div>
 
 
@@ -31150,6 +31150,273 @@ function startInventoryCount() {
   drawMain();
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE 14i — HYBRID QUANTITY INPUT
+   Tap-friendly count entry: ± buttons + presets + smart defaults.
+   No scroll wheels. Glove-friendly.
+═══════════════════════════════════════════════════════════ */
+
+/**
+ * QTY_PRESETS_BY_CATEGORY
+ * Quick preset values per item category.
+ */
+var QTY_PRESETS_BY_CATEGORY = {
+  'Spirits':     [0, 0.25, 0.5, 0.75, 1],
+  'Bar Mix':     [0, 0.25, 0.5, 0.75, 1],
+  'Bar Syrup':   [0, 0.25, 0.5, 0.75, 1],
+  'Wine':        [0, 1, 2, 4, 6],
+  'Beer':        [0, 1, 2, 6, 12],
+  'Protein':     [0, 5, 10, 20, 40],
+  'Meat':        [0, 5, 10, 20, 40],
+  'Dairy':       [0, 1, 2, 5, 10],
+  'Produce':     [0, 5, 10, 25, 50],
+  'Pantry':      [0, 5, 10, 25, 50],
+  'Bakery':      [0, 6, 12, 24, 48],
+  'Coffee':      [0, 1, 2, 5, 10],
+  'Chemical':    [0, 0.5, 1, 2, 5],
+  'Prep Recipe': [0, 0.5, 1, 2, 4],
+  '_default':    [0, 1, 5, 10, 20],
+};
+
+/**
+ * QTY_STEP_BY_CATEGORY
+ * Step size for ± buttons per category.
+ */
+var QTY_STEP_BY_CATEGORY = {
+  'Spirits':     0.25,
+  'Bar Mix':     0.25,
+  'Bar Syrup':   0.25,
+  'Wine':        1,
+  'Beer':        1,
+  'Protein':     1,
+  'Meat':        1,
+  'Dairy':       1,
+  'Produce':     1,
+  'Pantry':      1,
+  'Bakery':      1,
+  'Coffee':      0.5,
+  'Chemical':    0.5,
+  'Prep Recipe': 0.5,
+  '_default':    1,
+};
+
+/**
+ * getQtyPresets(item)
+ * Returns preset values for the dropdown unit being used.
+ * Adapts to count_unit so case items show case-relevant presets.
+ */
+function getQtyPresets(item, countUnit) {
+  if (!item) return [0, 1, 5, 10];
+  var cat = item.category || '_default';
+  var presets = QTY_PRESETS_BY_CATEGORY[cat] || QTY_PRESETS_BY_CATEGORY._default;
+  // For pack units (case, bottle, keg) — use small whole numbers
+  var unitDef = (typeof getUnitDef === 'function') ? getUnitDef(countUnit) : null;
+  if (unitDef && unitDef.type === 'pack') {
+    return [0, 1, 2, 4, 6];
+  }
+  return presets;
+}
+
+/**
+ * getQtyStep(item, countUnit)
+ * Returns ± button step size.
+ */
+function getQtyStep(item, countUnit) {
+  if (!item) return 1;
+  var cat = item.category || '_default';
+  var step = QTY_STEP_BY_CATEGORY[cat] || QTY_STEP_BY_CATEGORY._default;
+  // Pack units always step by 1
+  var unitDef = (typeof getUnitDef === 'function') ? getUnitDef(countUnit) : null;
+  if (unitDef && unitDef.type === 'pack') return 1;
+  return step;
+}
+
+/**
+ * getSmartDefaultQty(item, countUnit)
+ * Smart default value when operator first sees the line.
+ * Priority: last count → par level → 0
+ */
+function getSmartDefaultQty(item, countUnit) {
+  if (!item) return null;
+  // Last count for this item (any location)
+  if (Array.isArray(DB.inventoryCounts) && DB.inventoryCounts.length > 0) {
+    var sorted = DB.inventoryCounts.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+    for (var i = 0; i < sorted.length; i++) {
+      var c = sorted[i];
+      var line = (c.lines || []).find(function(l) {
+        return (l.item_id === item.id || l.ingredient_id === item.ingredient_id || l.item_id === item.ingredient_id)
+            && l.count_unit === countUnit;
+      });
+      if (line && line.qty != null && line.qty !== '') return parseFloat(line.qty);
+    }
+  }
+  // Par level
+  if (item.par_level && parseFloat(item.par_level) > 0) return parseFloat(item.par_level);
+  // Recent average from purchases (placeholder)
+  return null;
+}
+
+/**
+ * _qtyChange(itemId, locationId, delta, qtyKey, min)
+ * Apply +/- delta to current qty, persist, refresh display.
+ */
+function _qtyChange(itemId, locationId, delta, qtyKey, min) {
+  if (!window._activeCount) return;
+  var line = window._activeCount.lines.find(function(l) {
+    return l.item_id === itemId && (l.location_id || '') === (locationId || '');
+  });
+  if (!line) return;
+  var current = parseFloat(line.qty) || 0;
+  var newVal = current + delta;
+  if (min != null && newVal < min) newVal = min;
+  // Round to avoid float drift
+  newVal = Math.round(newVal * 100) / 100;
+  line.qty = newVal;
+  // Update display
+  var disp = document.getElementById('qtyval-' + qtyKey);
+  if (disp) disp.textContent = (newVal % 1 === 0) ? String(newVal) : newVal.toFixed(2);
+  if (typeof _refreshCountLineValue === 'function') _refreshCountLineValue(qtyKey);
+}
+
+/**
+ * _qtySetPreset(itemId, locationId, value, qtyKey)
+ * Set qty to a preset value.
+ */
+function _qtySetPreset(itemId, locationId, value, qtyKey) {
+  if (!window._activeCount) return;
+  var line = window._activeCount.lines.find(function(l) {
+    return l.item_id === itemId && (l.location_id || '') === (locationId || '');
+  });
+  if (!line) return;
+  line.qty = parseFloat(value);
+  var disp = document.getElementById('qtyval-' + qtyKey);
+  if (disp) disp.textContent = (line.qty % 1 === 0) ? String(line.qty) : line.qty.toFixed(2);
+  if (typeof _refreshCountLineValue === 'function') _refreshCountLineValue(qtyKey);
+}
+
+/**
+ * _qtyHold(itemId, locationId, delta, qtyKey, min)
+ * Press-and-hold acceleration on ± buttons.
+ * Initial delay 400ms, then fires every 80ms (decreases to 30ms after 1s).
+ */
+function _qtyStartHold(btn, itemId, locationId, delta, qtyKey, min) {
+  if (window._qtyHoldTimer) clearTimeout(window._qtyHoldTimer);
+  if (window._qtyHoldInterval) clearInterval(window._qtyHoldInterval);
+  // Initial delay before auto-repeat starts
+  window._qtyHoldTimer = setTimeout(function() {
+    var rate = 80;
+    var elapsed = 0;
+    window._qtyHoldInterval = setInterval(function() {
+      _qtyChange(itemId, locationId, delta, qtyKey, min);
+      elapsed += rate;
+      if (elapsed > 1000 && rate > 30) {
+        rate = 30;
+        clearInterval(window._qtyHoldInterval);
+        window._qtyHoldInterval = setInterval(function() {
+          _qtyChange(itemId, locationId, delta, qtyKey, min);
+        }, rate);
+      }
+    }, rate);
+  }, 400);
+}
+
+function _qtyEndHold() {
+  if (window._qtyHoldTimer) { clearTimeout(window._qtyHoldTimer); window._qtyHoldTimer = null; }
+  if (window._qtyHoldInterval) { clearInterval(window._qtyHoldInterval); window._qtyHoldInterval = null; }
+}
+
+/**
+ * _qtyManualEdit(itemId, locationId, qtyKey)
+ * Tap value → swap to typed input, blur swaps back.
+ */
+function _qtyManualEdit(itemId, locationId, qtyKey) {
+  var disp = document.getElementById('qtyval-' + qtyKey);
+  if (!disp) return;
+  var current = disp.textContent || '0';
+  var input = document.createElement('input');
+  input.type = 'number';
+  input.step = '0.01';
+  input.min = '0';
+  input.value = current;
+  input.style.cssText = 'width:60px;height:38px;font-size:18px;font-weight:700;text-align:center;background:var(--bg3);border:2px solid var(--orange);border-radius:6px;color:var(--text1);padding:0 4px;font-family:inherit';
+  input.id = 'qtyval-' + qtyKey;  // keep same ID so refresh handlers work
+  input.onblur = function() {
+    var v = parseFloat(input.value) || 0;
+    _qtySetPreset(itemId, locationId, v, qtyKey);
+    // Re-render — easiest is full redraw
+    if (typeof drawMain === 'function') {
+      drawMain.preserveScroll = true;
+      drawMain();
+    }
+  };
+  input.onkeydown = function(e) {
+    if (e.key === 'Enter') input.blur();
+  };
+  disp.parentNode.replaceChild(input, disp);
+  input.focus();
+  input.select();
+}
+
+/**
+ * renderHybridQtyInput(item, line, qtyKey)
+ * Returns the full hybrid input HTML for one count line.
+ */
+function renderHybridQtyInput(item, line, qtyKey) {
+  var presets = getQtyPresets(item, line.count_unit);
+  var step = getQtyStep(item, line.count_unit);
+  var currentVal = (line.qty != null && line.qty !== '') ? parseFloat(line.qty) : null;
+  var displayVal = currentVal != null ? (currentVal % 1 === 0 ? String(currentVal) : currentVal.toFixed(2)) : '0';
+  var idJSON = JSON.stringify(line.item_id);
+  var locJSON = JSON.stringify(line.location_id || '');
+  var keyJSON = JSON.stringify(qtyKey);
+
+  // ± buttons + value display
+  var stepperHtml = '<div style="display:flex;align-items:center;gap:4px">'
+    // Decrement button
+    + '<button '
+      + 'onpointerdown="_qtyStartHold(this,' + idJSON + ',' + locJSON + ',-' + step + ',' + keyJSON + ',0)" '
+      + 'onpointerup="_qtyEndHold()" '
+      + 'onpointerleave="_qtyEndHold()" '
+      + 'onclick="_qtyChange(' + idJSON + ',' + locJSON + ',-' + step + ',' + keyJSON + ',0)" '
+      + 'style="width:42px;height:42px;font-size:22px;font-weight:700;background:var(--bg3);border:1.5px solid var(--border);border-radius:6px;color:var(--text1);cursor:pointer;line-height:1;touch-action:manipulation">'
+      + '\u2212'
+    + '</button>'
+    // Value display (tap to type)
+    + '<div id="qtyval-' + qtyKey + '" '
+      + 'onclick="_qtyManualEdit(' + idJSON + ',' + locJSON + ',' + keyJSON + ')" '
+      + 'style="min-width:60px;height:42px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;color:var(--text1);cursor:pointer;font-family:\'JetBrains Mono\',monospace">'
+      + displayVal
+    + '</div>'
+    // Increment button
+    + '<button '
+      + 'onpointerdown="_qtyStartHold(this,' + idJSON + ',' + locJSON + ',' + step + ',' + keyJSON + ')" '
+      + 'onpointerup="_qtyEndHold()" '
+      + 'onpointerleave="_qtyEndHold()" '
+      + 'onclick="_qtyChange(' + idJSON + ',' + locJSON + ',' + step + ',' + keyJSON + ')" '
+      + 'style="width:42px;height:42px;font-size:22px;font-weight:700;background:var(--bg3);border:1.5px solid var(--border);border-radius:6px;color:var(--text1);cursor:pointer;line-height:1;touch-action:manipulation">'
+      + '+'
+    + '</button>'
+  + '</div>';
+
+  // Preset chips
+  var presetHtml = '<div style="display:flex;gap:3px;margin-top:4px;flex-wrap:wrap">'
+    + presets.map(function(p) {
+        var pStr = (p % 1 === 0) ? String(p) : p.toFixed(2);
+        return '<button onclick="_qtySetPreset(' + idJSON + ',' + locJSON + ',' + p + ',' + keyJSON + ')" '
+          + 'style="min-width:36px;height:28px;font-size:12px;font-weight:600;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text2);cursor:pointer;padding:0 6px;touch-action:manipulation">'
+          + pStr
+        + '</button>';
+      }).join('')
+  + '</div>';
+
+  return '<div>'
+    + stepperHtml
+    + presetHtml
+  + '</div>';
+}
+
 function renderSheetToShelfCount() {
   var grouped = groupCountableItemsByArea();
   var areaOrder = Object.keys(grouped)
@@ -31218,11 +31485,13 @@ function renderSheetToShelfCount() {
           }).join('')
       + '</select>';
       var qtyKey = line.item_id + '__' + (line.location_id || 'noloc');
-      var qtyInput = '<input type="number" step="0.01" min="0" value="' + (line.qty != null ? line.qty : '') + '" '
-        + 'placeholder="qty" '
-        + 'oninput="updateCountLineQty(\'' + line.item_id + '\',\'' + (line.location_id||'') + '\',this.value)" '
-        + 'onchange="_refreshCountLineValue(\'' + qtyKey + '\')" '
-        + 'style="width:74px;height:36px;font-size:14px;font-weight:600;text-align:center;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text1);padding:0 4px">';
+      // Phase 14i: hybrid qty input — ± buttons + presets + smart defaults
+      // Smart-default: pre-fill with last known count if operator hasn't entered anything yet
+      if (line.qty == null && typeof getSmartDefaultQty === 'function') {
+        var smart = getSmartDefaultQty(item, line.count_unit);
+        if (smart != null) line.qty = smart;
+      }
+      var qtyInput = renderHybridQtyInput(item, line, qtyKey);
       var extPrice = '<span id="ext-' + qtyKey + '" style="min-width:78px;text-align:right;font-family:monospace;font-size:13px;color:' + (counted ? 'var(--teal)' : 'var(--text3)') + ';font-weight:600">$' + lineVal.toFixed(2) + '</span>';
       // Up/down position arrows — only if multiple items in this area
       var upDownButtons = grp.instances.length > 1
