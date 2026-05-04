@@ -837,7 +837,7 @@ a,button,.btn,.ni,.nb-divider-clickable,.imp-btn,.rab,.setup-opt,.binder-card{cu
 </div>
 <div id="sb"></div>
 <div id="main"></div>
-<div data-build-id="build-000003" style="position:fixed;bottom:6px;left:6px;font-family:monospace;font-size:9px;color:rgba(255,255,255,.25);pointer-events:none;z-index:99">build-000003</div>
+<div data-build-id="build-002944" style="position:fixed;bottom:6px;left:6px;font-family:monospace;font-size:9px;color:rgba(255,255,255,.25);pointer-events:none;z-index:99">build-002944</div>
 <div id="kl-print-doc"></div>
 
 
@@ -29249,24 +29249,378 @@ function renderUsageSparkline(ingredientId) {
 // INV_COUNTS: 'kl_inv_counts_v1'
 // PURCHASE_LOG: 'kl_purchase_log_v1'
 
-// ── UOM CONVERSION TABLE ──────────────────────────────────────────────
-const UOM_CONVERSIONS = {
-  // to oz
-  'oz':     { to_oz: 1 },
-  'lb':     { to_oz: 16 },
-  'gram':   { to_oz: 0.03527 },
-  'kg':     { to_oz: 35.274 },
-  'gallon': { to_oz: 128 },
-  'quart':  { to_oz: 32 },
-  'pint':   { to_oz: 16 },
-  'cup':    { to_oz: 8 },
-  'liter':  { to_oz: 33.814 },
-  'ml':     { to_oz: 0.03381 },
-  'each':   { to_oz: null },   // no volume conversion — count only
-  'case':   { to_oz: null },   // depends on case_size × unit
+// ═══════════════════════════════════════════════════════════
+// PHASE 14h — STANDARDIZED UNIT SYSTEM (replaces ad-hoc UoMs)
+// Per spec: 4 unit types, controlled set, station-aware defaults.
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * UNIT_REGISTRY — the only units allowed system-wide.
+ * Each entry: { id, label, abbrev, type, base_factor }
+ *   type: 'count' | 'weight' | 'volume' | 'pack'
+ *   base_factor: how many BASE units = 1 of this unit
+ *     - WEIGHT base = oz  (1 lb = 16 oz, 1 oz = 1 oz)
+ *     - VOLUME base = fl oz  (1 gal = 128, 1 qt = 32, 1 cup = 8, 1 fl oz = 1)
+ *     - COUNT  base = each
+ *     - PACK   base = item (resolved via item.purchase_quantity)
+ */
+var UNIT_REGISTRY = {
+  // COUNT
+  'each':  { id:'each',  label:'each',         abbrev:'ea',    type:'count',  base_factor:1 },
+
+  // WEIGHT (base = oz)
+  'lb':    { id:'lb',    label:'pound',        abbrev:'lb',    type:'weight', base_factor:16 },
+  'oz':    { id:'oz',    label:'ounce',        abbrev:'oz',    type:'weight', base_factor:1 },
+  'gram':  { id:'gram',  label:'gram',         abbrev:'g',     type:'weight', base_factor:0.03527 },
+  'kg':    { id:'kg',    label:'kilogram',     abbrev:'kg',    type:'weight', base_factor:35.274 },
+
+  // VOLUME (base = fl oz)
+  'gal':   { id:'gal',   label:'gallon',       abbrev:'gal',   type:'volume', base_factor:128 },
+  'qt':    { id:'qt',    label:'quart',        abbrev:'qt',    type:'volume', base_factor:32 },
+  'pt':    { id:'pt',    label:'pint',         abbrev:'pt',    type:'volume', base_factor:16 },
+  'cup':   { id:'cup',   label:'cup',          abbrev:'cup',   type:'volume', base_factor:8 },
+  'floz':  { id:'floz',  label:'fluid ounce',  abbrev:'fl oz', type:'volume', base_factor:1 },
+  'liter': { id:'liter', label:'liter',        abbrev:'L',     type:'volume', base_factor:33.814 },
+  'ml':    { id:'ml',    label:'milliliter',   abbrev:'mL',    type:'volume', base_factor:0.03381 },
+
+  // PACK (resolved via item-level purchase_quantity)
+  'case':  { id:'case',  label:'case',         abbrev:'cs',    type:'pack',   base_factor:null },
+  'bag':   { id:'bag',   label:'bag',          abbrev:'bg',    type:'pack',   base_factor:null },
+  'box':   { id:'box',   label:'box',          abbrev:'bx',    type:'pack',   base_factor:null },
+  'jug':   { id:'jug',   label:'jug',          abbrev:'jug',   type:'pack',   base_factor:null },
+  'bottle':{ id:'bottle',label:'bottle',       abbrev:'btl',   type:'pack',   base_factor:null },
+  'keg':   { id:'keg',   label:'keg',          abbrev:'keg',   type:'pack',   base_factor:null },
 };
 
-const COUNT_UNITS = ['each','case','oz','lb','gram','kg','gallon','quart','pint','cup','liter','ml'];
+// Unit ID aliases — old/freeform unit strings → canonical UNIT_REGISTRY id
+var UNIT_ALIASES = {
+  'ea':'each', 'each':'each', 'ct':'each', 'count':'each', 'unit':'each', 'piece':'each', 'pc':'each',
+  'lb':'lb', 'lbs':'lb', 'pound':'lb', 'pounds':'lb',
+  'oz':'oz', 'ounce':'oz', 'ounces':'oz',
+  'g':'gram', 'gram':'gram', 'grams':'gram', 'gm':'gram',
+  'kg':'kg', 'kilo':'kg', 'kilogram':'kg', 'kgs':'kg',
+  'gal':'gal', 'gallon':'gal', 'gallons':'gal',
+  'qt':'qt', 'quart':'qt', 'quarts':'qt',
+  'pt':'pt', 'pint':'pt', 'pints':'pt',
+  'cup':'cup', 'cups':'cup', 'c':'cup',
+  'fl oz':'floz', 'floz':'floz', 'fluid ounce':'floz', 'fl-oz':'floz', 'fl_oz':'floz',
+  'l':'liter', 'liter':'liter', 'liters':'liter', 'litre':'liter',
+  'ml':'ml', 'milliliter':'ml', 'milliliters':'ml',
+  'case':'case', 'cs':'case', 'cases':'case',
+  'bag':'bag', 'bg':'bag', 'bags':'bag',
+  'box':'box', 'bx':'box', 'boxes':'box',
+  'jug':'jug', 'jugs':'jug',
+  'bottle':'bottle', 'btl':'bottle', 'bottles':'bottle',
+  'keg':'keg', 'kegs':'keg',
+  // Fallbacks
+  '':'each', 'portion':'each', 'serving':'each',
+  'head':'each', 'bunch':'each', 'each.':'each',
+};
+
+/**
+ * normalizeUnit(rawUnit)
+ * Returns the canonical UNIT_REGISTRY id, defaulting to 'each' if unknown.
+ */
+function normalizeUnit(rawUnit) {
+  if (rawUnit == null) return 'each';
+  var s = String(rawUnit).toLowerCase().trim();
+  return UNIT_ALIASES[s] || s;
+}
+
+/**
+ * getUnitDef(unitId)
+ * Returns the registry entry for the unit, normalizing first.
+ */
+function getUnitDef(unitId) {
+  var id = normalizeUnit(unitId);
+  return UNIT_REGISTRY[id] || UNIT_REGISTRY.each;
+}
+
+/**
+ * unitsCanConvert(fromUnit, toUnit, item)
+ * Returns true if a conversion path exists between these units for this item.
+ *  - Same type (weight↔weight, volume↔volume) → true via base
+ *  - Pack → base unit: true if item has purchase_quantity defined
+ *  - Across types (weight↔volume): false unless item has density (not yet supported)
+ */
+function unitsCanConvert(fromUnit, toUnit, item) {
+  var from = getUnitDef(fromUnit);
+  var to = getUnitDef(toUnit);
+  if (from.id === to.id) return true;
+  // Same numeric type → can convert via base
+  if (from.type === to.type && from.type !== 'pack' && from.type !== 'count') return true;
+  // Pack → resolves via item.purchase_quantity
+  if (from.type === 'pack' || to.type === 'pack') {
+    if (!item) return false;
+    var pq = parseFloat(item.purchase_quantity || item.pack_size || 0);
+    return pq > 0;
+  }
+  // Each ↔ each only
+  if (from.type === 'count' && to.type === 'count') return true;
+  return false;
+}
+
+/**
+ * convertUnits(qty, fromUnit, toUnit, item)
+ * Converts qty FROM fromUnit TO toUnit, using item config for pack resolution.
+ * Returns 0 if no valid conversion path exists.
+ */
+function convertUnits(qty, fromUnit, toUnit, item) {
+  qty = parseFloat(qty) || 0;
+  if (qty <= 0) return 0;
+  var from = getUnitDef(fromUnit);
+  var to = getUnitDef(toUnit);
+  if (from.id === to.id) return qty;
+
+  // Same numeric type: convert through base
+  if (from.type === to.type && (from.type === 'weight' || from.type === 'volume')) {
+    var inBase = qty * from.base_factor;
+    return inBase / to.base_factor;
+  }
+
+  // Each ↔ each
+  if (from.type === 'count' && to.type === 'count') return qty;
+
+  // Pack conversions need item.purchase_quantity + item.base_unit
+  if (from.type === 'pack' || to.type === 'pack') {
+    if (!item) return 0;
+    var pq = parseFloat(item.purchase_quantity || item.pack_size || 0);
+    var bu = normalizeUnit(item.base_unit || item.pack_unit || item.unit || 'each');
+    if (pq <= 0) return 0;
+    if (from.type === 'pack' && to.type !== 'pack') {
+      // 1 pack = pq units of base_unit. Then convert base_unit → toUnit.
+      var inBaseUnit = qty * pq;
+      return convertUnits(inBaseUnit, bu, toUnit, item);
+    }
+    if (to.type === 'pack' && from.type !== 'pack') {
+      // Inverse: convert from→base_unit first, then divide by pq.
+      var inBU2 = convertUnits(qty, fromUnit, bu, item);
+      return inBU2 / pq;
+    }
+    if (from.type === 'pack' && to.type === 'pack') {
+      // Pack→pack only meaningful if same pack type (case→case = 1)
+      return from.id === to.id ? qty : 0;
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * STATION_UNIT_DEFAULTS
+ * Suggested unit lists by station — the dropdown shows ONLY these for the station.
+ * Order = display priority (first one is the suggested default).
+ */
+var STATION_UNIT_DEFAULTS = {
+  'Hot Line':  ['oz','lb','each','case'],
+  'Grill':     ['oz','lb','each','case'],
+  'Saute':     ['oz','lb','each','case'],
+  'Cold Line': ['lb','oz','each','qt','case'],
+  'Prep':      ['lb','oz','each','qt','case'],
+  'Salad':     ['lb','oz','each','case'],
+  'Fry':       ['lb','each','gal','qt','case'],
+  'Bar':       ['floz','oz','qt','gal','bottle','case'],
+  'Coffee':    ['oz','floz','gram','each','case'],
+  'Coffee Bar':['oz','floz','gram','each','case'],
+  'Bakery':    ['oz','lb','gram','each','case'],
+  'Dish':      ['oz','floz','gal','each','case'],
+  'FOH':       ['each','case','floz'],
+  // Storage area buckets
+  'Walk-in Cooler':  ['lb','oz','each','case','qt'],
+  'Walk-in Freezer': ['lb','oz','each','case'],
+  'Dry Storage':     ['lb','oz','each','case','bag','box'],
+  'Bar Cooler':      ['floz','oz','bottle','case'],
+  'Liquor Cabinet':  ['floz','bottle','case'],
+  'Wine Storage':    ['bottle','case'],
+  'Keg Walk-In':     ['keg','gal'],
+  'Coffee Bean Storage': ['oz','lb','gram','bag'],
+  // Default fallback
+  '_default':  ['each','lb','oz','case'],
+};
+
+/**
+ * CATEGORY_BASE_UNITS
+ * Map ingredient category → suggested base_unit + recipe_unit.
+ * Used during item setup / migration.
+ */
+var CATEGORY_BASE_UNITS = {
+  'Protein':    { base_unit:'lb',  recipe_unit:'oz',  count_unit:'lb' },
+  'Meat':       { base_unit:'lb',  recipe_unit:'oz',  count_unit:'lb' },
+  'Dairy':      { base_unit:'oz',  recipe_unit:'oz',  count_unit:'lb' },
+  'Produce':    { base_unit:'each',recipe_unit:'each',count_unit:'each' },
+  'Pantry':     { base_unit:'oz',  recipe_unit:'oz',  count_unit:'lb' },
+  'Bakery':     { base_unit:'each',recipe_unit:'each',count_unit:'each' },
+  'Spirits':    { base_unit:'floz',recipe_unit:'floz',count_unit:'bottle' },
+  'Bar Mix':    { base_unit:'floz',recipe_unit:'floz',count_unit:'qt' },
+  'Bar Syrup':  { base_unit:'floz',recipe_unit:'floz',count_unit:'qt' },
+  'Wine':       { base_unit:'floz',recipe_unit:'floz',count_unit:'bottle' },
+  'Beer':       { base_unit:'floz',recipe_unit:'floz',count_unit:'keg' },
+  'Coffee':     { base_unit:'oz',  recipe_unit:'oz',  count_unit:'lb' },
+  'Chemical':   { base_unit:'floz',recipe_unit:'floz',count_unit:'gal' },
+  'Prep Recipe':{ base_unit:'oz',  recipe_unit:'oz',  count_unit:'qt' },
+  '_default':   { base_unit:'each',recipe_unit:'each',count_unit:'each' },
+};
+
+/**
+ * suggestUnitsForItem(item, context)
+ * Returns the list of unit IDs to show in the dropdown for this item.
+ * context = 'count' | 'recipe' | 'purchase' (filters appropriately)
+ */
+function suggestUnitsForItem(item, context) {
+  if (!item) return ['each'];
+  context = context || 'count';
+
+  var stationHint = item.station || item.storage || item.storage_area || '';
+  var stationDefaults = STATION_UNIT_DEFAULTS[stationHint] || STATION_UNIT_DEFAULTS._default;
+  var catDefaults = CATEGORY_BASE_UNITS[item.category] || CATEGORY_BASE_UNITS._default;
+
+  // Determine the item's TYPE (count/weight/volume) from base_unit
+  var baseUnitId = normalizeUnit(item.base_unit || item.unit || catDefaults.base_unit);
+  var baseDef = UNIT_REGISTRY[baseUnitId] || UNIT_REGISTRY.each;
+  var itemType = baseDef.type;  // 'count', 'weight', or 'volume'
+
+  var options = [];
+  function add(u) {
+    var n = normalizeUnit(u);
+    if (!n || !UNIT_REGISTRY[n]) return;
+    if (options.indexOf(n) >= 0) return;
+    var def = UNIT_REGISTRY[n];
+    // Type filter: only allow units of the same type, or pack types (which work via purchase_quantity)
+    if (def.type === 'pack') {
+      // Allow packs only if item has real purchase_quantity > 1 OR it's the stated purchase_unit
+      var pq = parseFloat(item.purchase_quantity || item.pack_size) || 1;
+      if (pq > 1 || normalizeUnit(item.purchase_unit) === n) options.push(n);
+      return;
+    }
+    if (def.type !== itemType) return;  // skip cross-type (no lb for floz items, etc.)
+    options.push(n);
+  }
+
+  if (context === 'count') {
+    add(item.count_unit);
+    add(item.base_unit);
+    add(catDefaults.count_unit);
+    add(catDefaults.base_unit);
+    if (parseFloat(item.purchase_quantity || item.pack_size) > 1) add(item.purchase_unit || 'case');
+    stationDefaults.forEach(add);
+  } else if (context === 'recipe') {
+    add(item.recipe_unit);
+    add(item.base_unit);
+    add(catDefaults.recipe_unit);
+    add(catDefaults.base_unit);
+    stationDefaults.forEach(add);
+  } else if (context === 'purchase') {
+    add(item.purchase_unit);
+    add(catDefaults.count_unit);
+    if (parseFloat(item.purchase_quantity || item.pack_size) > 1) add('case');
+    stationDefaults.forEach(add);
+  }
+
+  return options.length ? options : [baseUnitId];
+}
+
+/**
+ * getItemBaseUnitCost(item)
+ * Returns cost per BASE unit (e.g., $/oz for protein, $/floz for liquor).
+ * Handles both new schema (purchase_unit + purchase_quantity + price)
+ * and legacy schema (true_unit_cost + unit).
+ */
+function getItemBaseUnitCost(item) {
+  if (!item) return 0;
+  // Legacy: true_unit_cost + unit (priced per its unit directly)
+  if (item.true_unit_cost != null) {
+    var legacyUnit = normalizeUnit(item.unit);
+    var def = UNIT_REGISTRY[legacyUnit];
+    if (!def) return parseFloat(item.true_unit_cost) || 0;
+    // true_unit_cost is per item.unit. Convert to "per base":
+    // For weight/volume, base is oz/floz. Cost per oz = cost / unit.base_factor
+    if (def.type === 'weight' || def.type === 'volume') {
+      return parseFloat(item.true_unit_cost) / def.base_factor;
+    }
+    // count → per each
+    return parseFloat(item.true_unit_cost) || 0;
+  }
+  // New schema: purchase price + quantity gives base cost
+  var price = parseFloat(item.price) || 0;
+  if (price <= 0) return 0;
+  var pq = parseFloat(item.purchase_quantity || item.pack_size) || 1;
+  var bu = normalizeUnit(item.base_unit || item.pack_unit || item.unit);
+  var def = UNIT_REGISTRY[bu];
+  if (!def) return price / pq;
+  // If purchase price is for purchase_quantity in the base unit:
+  // e.g., 1 case = 40 lb = $152 → $152 / 40 lb = $3.80/lb. Per oz = $3.80/16 = $0.2375
+  if (def.type === 'weight' || def.type === 'volume') {
+    var perBaseUnit = price / pq;          // $/lb or $/qt etc.
+    return perBaseUnit / def.base_factor;  // → $/oz or $/floz
+  }
+  return price / pq;
+}
+
+/**
+ * getCountInstanceCostV2(qty, count_unit, item)
+ * Phase 14h replacement for getCountInstanceCost.
+ * Properly converts ANY count unit to base, then multiplies by base unit cost.
+ */
+function getCountInstanceCostV2(qty, count_unit, item) {
+  qty = parseFloat(qty) || 0;
+  if (qty <= 0 || !item) return 0;
+  var baseUnit = normalizeUnit(item.base_unit || item.unit || 'each');
+  var def = UNIT_REGISTRY[baseUnit];
+  if (!def) return 0;
+  // Convert count to BASE unit (oz, floz, or each)
+  var realBase = (def.type === 'weight') ? 'oz'
+               : (def.type === 'volume') ? 'floz'
+               : baseUnit;
+  // First try direct convertUnits
+  var inBase = convertUnits(qty, count_unit, realBase, item);
+  if (inBase <= 0 && getUnitDef(count_unit).type === 'pack') {
+    // Pack → base via purchase_quantity
+    var pq = parseFloat(item.purchase_quantity || item.pack_size) || 1;
+    var bu = normalizeUnit(item.base_unit || item.pack_unit || item.unit);
+    inBase = convertUnits(qty * pq, bu, realBase, item);
+  }
+  if (inBase <= 0) {
+    // Fallback: assume count_unit IS the base unit
+    inBase = qty;
+  }
+  var costPerBase = getItemBaseUnitCost(item);
+  return inBase * costPerBase;
+}
+
+/**
+ * normalizeIngredientItem(item)
+ * Migration helper: ensures any ingredient has purchase_unit, purchase_quantity,
+ * base_unit, recipe_unit, count_unit set sensibly.
+ */
+function normalizeIngredientItem(item) {
+  if (!item) return item;
+  var cat = item.category || '_default';
+  var defaults = CATEGORY_BASE_UNITS[cat] || CATEGORY_BASE_UNITS._default;
+  var legacyUnit = normalizeUnit(item.unit);
+  var legacyDef = UNIT_REGISTRY[legacyUnit] || UNIT_REGISTRY.each;
+  // Set base_unit — prefer explicit, fall back to legacy unit, then category default
+  if (!item.base_unit) item.base_unit = legacyUnit || defaults.base_unit;
+  if (!item.recipe_unit) item.recipe_unit = item.base_unit;
+  // count_unit must match base_unit's TYPE — don't apply a weight default to a count-typed item
+  if (!item.count_unit) {
+    var catCountDef = UNIT_REGISTRY[normalizeUnit(defaults.count_unit)];
+    if (catCountDef && catCountDef.type === legacyDef.type) {
+      item.count_unit = defaults.count_unit;
+    } else {
+      // Type mismatch — use the legacy unit as count unit
+      item.count_unit = legacyUnit;
+    }
+  }
+  // Pack info
+  if (!item.purchase_unit) {
+    item.purchase_unit = (parseFloat(item.pack_size) > 1) ? 'case' : item.base_unit;
+  }
+  if (!item.purchase_quantity) {
+    item.purchase_quantity = parseFloat(item.pack_size) || 1;
+  }
+  return item;
+}
+
 
 /**
  * convertToBaseUnit(qty, fromUnit, ingredient)
@@ -29595,6 +29949,10 @@ function saveStorageAreas() {
  * One-time migration: if no storage areas configured, seed defaults.
  */
 function seedDefaultStorageAreasIfEmpty() {
+  // Phase 14h: also normalize all ingredients to standard unit schema on first access
+  if (typeof normalizeIngredientItem === 'function' && Array.isArray(DB.ingredients)) {
+    DB.ingredients.forEach(function(i){ normalizeIngredientItem(i); });
+  }
   if (!Array.isArray(DB.storageAreas)) DB.storageAreas = [];
   // First check: did the operator already do the wizard storage step? If so, sync from there
   if (DB.storageAreas.length === 0
@@ -29722,42 +30080,11 @@ function getCountForCheckpoint(checkpointDate) {
  * Returns sensible UoM options for the count dropdown.
  */
 function getRecommendedUoMs(item) {
-  // Returns ONLY UoM options that have a defined conversion path to the
-  // ingredient's canonical unit. No nonsense options that compute as 0.
-  // Always includes the canonical (received) unit FIRST so it's the default.
-  if (!item) return ['each'];
-  var canonical = (item.unit || 'each').toLowerCase();
-  var packSize = parseFloat(item.pack_size) || 1;
-
-  // Use an array (not Set) so we control ordering — canonical first
-  var options = [canonical];
-
-  // 'case' is valid IFF the item actually has a known case size (pack_size > 1)
-  if (packSize > 1) options.push('case');
-
-  // Volume/weight convertible options ONLY if the canonical unit is in that family
-  // and the conversion is defined in UOM_CONVERSIONS
-  var weightUnits = ['oz','lb','gram','kg'];
-  var volumeUnits = ['oz','gallon','quart','pint','cup','liter','ml'];
-  var canonicalIsWeight = weightUnits.indexOf(canonical) >= 0;
-  var canonicalIsVolume = volumeUnits.indexOf(canonical) >= 0 && canonical !== 'oz';
-  // Note: 'oz' is ambiguous — could be weight (meat) or volume (liquid).
-  // System defaults to weight via UOM_CONVERSIONS.oz.to_oz=1.
-
-  if (canonicalIsWeight) {
-    weightUnits.forEach(function(u){
-      if (u !== canonical && options.indexOf(u) < 0) options.push(u);
-    });
-  } else if (canonicalIsVolume) {
-    volumeUnits.forEach(function(u){
-      if (u !== canonical && options.indexOf(u) < 0) options.push(u);
-    });
+  // Phase 14h: delegates to standardized unit suggestion system.
+  if (typeof suggestUnitsForItem === 'function') {
+    return suggestUnitsForItem(item, 'count');
   }
-
-  // For 'each' canonical (countables): no convertible alternatives, just each + case
-  // (Already handled above.)
-
-  return options;
+  return ['each'];
 }
 
 /**
@@ -29765,16 +30092,15 @@ function getRecommendedUoMs(item) {
  * Extended price for one count instance. Uses existing convertToBaseUnit.
  */
 function getCountInstanceCost(qty, count_unit, item) {
-  if (!item || !qty || parseFloat(qty) <= 0) return 0;
-  // Adapt item for convertToBaseUnit (which uses true_unit_cost + case_size)
-  var adapted = {
-    unit:            item.unit || 'each',
-    true_unit_cost:  item.true_unit_cost
-                     || (item.price && item.pack_size ? item.price / item.pack_size : item.price || 0),
-    case_size:       item.pack_size || 1,
-  };
-  var result = convertToBaseUnit(parseFloat(qty), count_unit, adapted);
-  return result.line_value || 0;
+  // Phase 14h: delegates to the accurate v2 cost engine.
+  if (typeof getCountInstanceCostV2 === 'function') {
+    return getCountInstanceCostV2(qty, count_unit, item);
+  }
+  // Legacy fallback (shouldn't reach here)
+  qty = parseFloat(qty) || 0;
+  if (!item || qty <= 0) return 0;
+  var unitCost = item.true_unit_cost || item.price || 0;
+  return qty * unitCost;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -29943,8 +30269,27 @@ function moveCountLocationPosition(itemId, kind, locationId, direction) {
   var target = kind === 'recipe'
     ? (DB.recipes || []).find(function(r){ return r.recipe_id === itemId; })
     : (DB.ingredients || []).find(function(i){ return (i.id || i.ingredient_id) === itemId; });
-  if (!target || !Array.isArray(target.count_locations)) return;
-  var loc = target.count_locations.find(function(l){ return l.id === locationId; });
+  if (!target) return;
+  // Phase 14h: if no count_locations[] exists yet, the operator clicked move on a
+  // legacy item. Auto-create a default location so the move can proceed.
+  if (!Array.isArray(target.count_locations)) target.count_locations = [];
+  if (target.count_locations.length === 0) {
+    var areaId = target.storage_area_id || (typeof getStorageAreas === 'function'
+      ? (getStorageAreas()[0] || {}).id : null);
+    if (areaId) {
+      target.count_locations.push({
+        id:               'cl-auto-' + Date.now() + '-' + Math.random().toString(36).slice(2,5),
+        storage_area_id:  areaId,
+        shelf:            '',
+        position:         1,
+        count_unit:       target.count_unit || target.unit || 'each',
+        canonical_factor: 1,
+      });
+    }
+  }
+  var loc = locationId
+    ? target.count_locations.find(function(l){ return l.id === locationId; })
+    : target.count_locations[0];
   if (!loc) return;
   // We need to swap with the adjacent item in the SAME storage area
   // Get all instances in that area across all items
