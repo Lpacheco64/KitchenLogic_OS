@@ -11,11 +11,11 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="description" content="Restaurant ops system — recipes, prep, line checks, schedule, costing">
   <!-- PWA manifest (inline data URI so single-file deploy works) -->
-  <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIktpdGNoZW5Mb2dpYyBPUyIsICJzaG9ydF9uYW1lIjogIktpdGNoZW5Mb2dpYyIsICJkZXNjcmlwdGlvbiI6ICJSZXN0YXVyYW50IG9wcyBzeXN0ZW0gXHUyMDE0IHJlY2lwZXMsIHByZXAsIGxpbmUgY2hlY2tzLCBzY2hlZHVsZSwgY29zdGluZyIsICJzdGFydF91cmwiOiAiLi8iLCAic2NvcGUiOiAiLi8iLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgIm9yaWVudGF0aW9uIjogImFueSIsICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwYTBhMGEiLCAidGhlbWVfY29sb3IiOiAiIzBhMGEwYSIsICJjYXRlZ29yaWVzIjogWyJidXNpbmVzcyIsICJwcm9kdWN0aXZpdHkiLCAiZm9vZCJdLCAiaWNvbnMiOiBbeyJzcmMiOiAiaWNvbi0xOTIucG5nIiwgInNpemVzIjogIjE5MngxOTIiLCAidHlwZSI6ICJpbWFnZS9wbmciLCAicHVycG9zZSI6ICJhbnkgbWFza2FibGUifSwgeyJzcmMiOiAiaWNvbi01MTIucG5nIiwgInNpemVzIjogIjUxMng1MTIiLCAidHlwZSI6ICJpbWFnZS9wbmciLCAicHVycG9zZSI6ICJhbnkgbWFza2FibGUifV19">
+  <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIktpdGNoZW5Mb2dpYyBPUyIsICJzaG9ydF9uYW1lIjogIktpdGNoZW5Mb2dpYyIsICJkZXNjcmlwdGlvbiI6ICJSZXN0YXVyYW50IG9wcyBzeXN0ZW0gXHUyMDE0IHJlY2lwZXMsIHByZXAsIGxpbmUgY2hlY2tzLCBzY2hlZHVsZSwgY29zdGluZyIsICJzdGFydF91cmwiOiAiLi8iLCAic2NvcGUiOiAiLi8iLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgIm9yaWVudGF0aW9uIjogImFueSIsICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwYTBhMGEiLCAidGhlbWVfY29sb3IiOiAiIzBhMGEwYSIsICJjYXRlZ29yaWVzIjogWyJidXNpbmVzcyIsICJwcm9kdWN0aXZpdHkiLCAiZm9vZCJdLCAiaWNvbnMiOiBbXX0=">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSI5NiIgZmlsbD0iIzBhMGEwYSIvPgo8dGV4dCB4PSIyNTYiIHk9IjIwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IidCZWJhcyBOZXVlJyxJbXBhY3Qsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMjAiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNmMGVkZTgiIGxldHRlci1zcGFjaW5nPSItMiI+S0lUQ0hFTjwvdGV4dD4KPHRleHQgeD0iMjU2IiB5PSIzMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSInQmViYXMgTmV1ZScsSW1wYWN0LHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjY2M0NDAwIiBsZXR0ZXItc3BhY2luZz0iLTIiPkxPR0lDPC90ZXh0Pgo8dGV4dCB4PSIyNTYiIHk9IjQyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IidCZWJhcyBOZXVlJyxJbXBhY3Qsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI2OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2YwZWRlOCIgbGV0dGVyLXNwYWNpbmc9IjIiPk9TPC90ZXh0Pgo8L3N2Zz4=">
   <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSI5NiIgZmlsbD0iIzBhMGEwYSIvPgo8dGV4dCB4PSIyNTYiIHk9IjIwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IidCZWJhcyBOZXVlJyxJbXBhY3Qsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMjAiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNmMGVkZTgiIGxldHRlci1zcGFjaW5nPSItMiI+S0lUQ0hFTjwvdGV4dD4KPHRleHQgeD0iMjU2IiB5PSIzMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSInQmViYXMgTmV1ZScsSW1wYWN0LHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjY2M0NDAwIiBsZXR0ZXItc3BhY2luZz0iLTIiPkxPR0lDPC90ZXh0Pgo8dGV4dCB4PSIyNTYiIHk9IjQyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IidCZWJhcyBOZXVlJyxJbXBhY3Qsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI2OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2YwZWRlOCIgbGV0dGVyLXNwYWNpbmc9IjIiPk9TPC90ZXh0Pgo8L3N2Zz4=">
   <link rel="shortcut icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSI5NiIgZmlsbD0iIzBhMGEwYSIvPgo8dGV4dCB4PSIyNTYiIHk9IjIwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IidCZWJhcyBOZXVlJyxJbXBhY3Qsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMjAiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNmMGVkZTgiIGxldHRlci1zcGFjaW5nPSItMiI+S0lUQ0hFTjwvdGV4dD4KPHRleHQgeD0iMjU2IiB5PSIzMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSInQmViYXMgTmV1ZScsSW1wYWN0LHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjY2M0NDAwIiBsZXR0ZXItc3BhY2luZz0iLTIiPkxPR0lDPC90ZXh0Pgo8dGV4dCB4PSIyNTYiIHk9IjQyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IidCZWJhcyBOZXVlJyxJbXBhY3Qsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI2OCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2YwZWRlOCIgbGV0dGVyLXNwYWNpbmc9IjIiPk9TPC90ZXh0Pgo8L3N2Zz4=">
-<meta name="kl-build-id" content="build-20260721-1515">
+<meta name="kl-build-id" content="build-20260722-1600">
   <title>KitchenLogic OS</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -811,10 +811,7 @@ a,button,.btn,.ni,.nb-divider-clickable,.imp-btn,.rab,.setup-opt,.binder-card{cu
 </style>
 
 
-<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiS2l0Y2hlbkxvZ2ljIE9TIiwic2hvcnRfbmFtZSI6IktpdGNoZW5Mb2dpYyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMGEwYTBhIiwidGhlbWVfY29sb3IiOiIjRkY2QjJCIiwiaWNvbnMiOltdfQ==">
-<meta name="theme-color" content="#FF6B2B">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="KitchenLogic">
+<!-- FIX: duplicate manifest/theme-color/apple metas removed; canonical versions live in <head> -->
 </head>
 <body>
 <div id="sb-overlay" onclick="closeSidebar()"></div>
@@ -826,7 +823,7 @@ a,button,.btn,.ni,.nb-divider-clickable,.imp-btn,.rab,.setup-opt,.binder-card{cu
   </div>
   <div class="toggle-wrap">
     <div class="toggle">
-      <button class="tbtn on" id="bt-svc" onclick="setMode('service')">SERVICE</button>
+      <button class="tbtn on" id="bt-svc" onclick="setMode('service')">RUN</button>
       <button class="tbtn" id="bt-bld" onclick="setMode('build')">BUILD</button>
     </div>
   </div>
@@ -837,58 +834,19 @@ a,button,.btn,.ni,.nb-divider-clickable,.imp-btn,.rab,.setup-opt,.binder-card{cu
 </div>
 <div id="sb"></div>
 <div id="main"></div>
-<div data-build-id="build-20260721-1515" style="position:fixed;bottom:6px;left:6px;font-family:monospace;font-size:9px;color:rgba(255,255,255,.25);pointer-events:none;z-index:99">build-20260721-1515</div>
+<div data-build-id="build-20260722-1600" style="position:fixed;bottom:6px;left:6px;font-family:monospace;font-size:9px;color:rgba(255,255,255,.25);pointer-events:none;z-index:99">build-20260722-1600</div>
 <div id="kl-print-doc"></div>
 
 
 <script>
 if ('serviceWorker' in navigator) {
-  // Phase 14d: real PWA service worker
-  // Cache-first for HTML/static assets; network-first with cache fallback for everything else
-  // Cache name versioned by build ID so updates clear old cache automatically
-  var _klCacheName = 'kl-cache-v' + (document.querySelector('[data-build-id]') || {}).getAttribute && (document.querySelector('[data-build-id]')||{}).getAttribute('data-build-id') || 'v1';
-  var _swCode = [
-    'var CACHE = "' + _klCacheName + '";',
-    'self.addEventListener("install",function(e){',
-    '  e.waitUntil(caches.open(CACHE).then(function(c){',
-    '    return c.add(self.location.pathname.replace(/sw.*/,"")).catch(function(){});',
-    '  }));',
-    '  self.skipWaiting();',
-    '});',
-    'self.addEventListener("activate",function(e){',
-    '  e.waitUntil(caches.keys().then(function(keys){',
-    '    return Promise.all(keys.filter(function(k){return k!==CACHE}).map(function(k){return caches.delete(k)}));',
-    '  }));',
-    '  self.clients.claim();',
-    '});',
-    'self.addEventListener("fetch",function(e){',
-    '  if (e.request.method !== "GET") return;',
-    '  // Network-first for navigation requests so updates show fast',
-    '  if (e.request.mode === "navigate") {',
-    '    e.respondWith(fetch(e.request).then(function(r){',
-    '      var clone = r.clone();',
-    '      caches.open(CACHE).then(function(c){c.put(e.request, clone)});',
-    '      return r;',
-    '    }).catch(function(){',
-    '      return caches.match(e.request).then(function(r){',
-    '        return r || caches.match("./") || caches.match("./index.html");',
-    '      });',
-    '    }));',
-    '    return;',
-    '  }',
-    '  // Cache-first for everything else (fonts, images, etc.)',
-    '  e.respondWith(caches.match(e.request).then(function(r){',
-    '    return r || fetch(e.request).then(function(resp){',
-    '      if (resp && resp.status === 200 && resp.type === "basic") {',
-    '        var clone = resp.clone();',
-    '        caches.open(CACHE).then(function(c){c.put(e.request, clone)});',
-    '      }',
-    '      return resp;',
-    '    });',
-    '  }));',
-    '});',
-  ].join('\n');
-  navigator.serviceWorker.register(URL.createObjectURL(new Blob([_swCode],{type:'application/javascript'}))).catch(function(){});
+  // FIX: browsers reject service workers registered from blob: URLs, so the
+  // old inline approach never activated (the failure was silently swallowed).
+  // sw.js must sit next to index.html in the repo. The build id in the query
+  // string versions the cache — a new build automatically triggers an update.
+  var _klBuild = (document.querySelector('meta[name="kl-build-id"]') || {}).content || 'v1';
+  navigator.serviceWorker.register('./sw.js?v=' + encodeURIComponent(_klBuild))
+    .catch(function(){ /* sw.js missing or unsupported — app still works online */ });
 }
 var _klInstallEvt = null;
 window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); _klInstallEvt=e; var b=document.getElementById('kl-install-btn'); if(b) b.style.display='inline-flex'; });
@@ -899,6 +857,13 @@ function installApp() {
 </script>
 
 <script>
+function esc(s) {
+  // FIX: escape user-entered text before inserting into innerHTML.
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
 function fmtMoney(n, opts) {
   // Format a number as currency string. Default: "$1,234.56"
   // Options: { decimals: 0|2 (default 2), showSign: bool, abbreviate: bool ('1.2k') }
@@ -4437,10 +4402,16 @@ function generateTOC(bookNameOrId) {
 
 function getRecipePage(id) {
   const r = DB.recipes.find(x => x.recipe_id === id);
-  if (!r || !r.recipe_books || !r.recipe_books.length) return null;
-  const book = generateRecipeBook(r.recipe_books[0]);
+  if (!r) return null;
+  // FIX: also honor the newer book_ids field, not just legacy recipe_books names
+  var bookRef = (r.book_ids && r.book_ids.length) ? r.book_ids[0]
+              : (r.recipe_books && r.recipe_books.length) ? r.recipe_books[0] : null;
+  if (!bookRef) return null;
+  var bookObj = (typeof getRecipeBookById === 'function') ? getRecipeBookById(bookRef) : null;
+  var bookName = bookObj ? bookObj.name : bookRef;
+  const book = generateRecipeBook(bookRef);
   const e = book.find(b => b.recipe_id === id);
-  return e ? { book: r.recipe_books[0], page: e.page } : null;
+  return e ? { book: bookName, page: e.page } : null;
 }
 
 function generateCheatSheet(station) {
@@ -4594,7 +4565,7 @@ function saveProfile()     { try { safeSet(LS.PROFILE, DB.restaurantProfile); } 
 function saveVendors()     { try { safeSet(LS.VENDORS, DB.vendors);           } catch(e) { logErr('saveVendors', e.message); } }
 function savePrepHistory() { try { safeSet(LS.PREP_HISTORY, DB.prepHistory||[]);   } catch(e) { logErr('savePrepHistory', e.message); } }
 function saveSales() { try { safeSet(LS.SALES, DB.dailySales); } catch(e) { logErr('saveSales', e.message); } }
-function savePurchases() { try { safeSet(LS.PURCHASES, DB.purchaseLog); } catch(e) { logErr('savePurchases', e.message); } }
+function savePurchases() { savePurchaseLog(); } // FIX: purchases unified under LS.PURCHASE_LOG (kl_purchase_log_v1)
 
 // ══════════════════════════════════════════════════════════════════════
 // POS SALES LAYER — Three input paths, one data model
@@ -6327,7 +6298,7 @@ function saveAll() {
   try { safeSet(LS.LOGS,        DB.dailyLogs);           } catch(e){}
   try { safeSet(LS.LABOR,       DB.laborLog);            } catch(e){}
   try { safeSet(LS.WASTE,       DB.wasteLog);            } catch(e){}
-  try { safeSet(LS.PURCHASES,   DB.purchaseLog);         } catch(e){}
+  try { safeSet(LS.PURCHASE_LOG, DB.purchaseLog);         } catch(e){} // FIX: unified purchase key
   try { safeSet(LS.SALES,       DB.dailySales);          } catch(e){}
   try { safeSet(LS.SALES_LOG,   DB.salesLog);            } catch(e){}
   try { safeSet(LS.EMPLOYEES,   DB.employees);           } catch(e){}
@@ -10135,7 +10106,8 @@ function saveQuickNumbers() {
     saveSales();
   }
   if (purch > 0) {
-    DB.purchaseLog.push({ purchase_id:'p_'+Date.now()+'_'+Math.floor(Math.random()*1000), date:date, vendor:vend, amount:Math.round(purch*100)/100, category:'food' });
+    var _qpAmt = Math.round(purch*100)/100;
+    DB.purchaseLog.push({ purchase_id:'p_'+Date.now()+'_'+Math.floor(Math.random()*1000), date:date, vendor:vend, amount:_qpAmt, total:_qpAmt, category:'food' }); // FIX: both fields set
     savePurchases();
   }
   var msg = [];
@@ -10145,12 +10117,8 @@ function saveQuickNumbers() {
   drawMain();
 }
 
-function deletePurchase(id) {
-  DB.purchaseLog = (DB.purchaseLog||[]).filter(function(p){ return p.purchase_id !== id; });
-  savePurchases();
-  showToast('Purchase removed');
-  drawMain();
-}
+// FIX: deletePurchase was defined twice; the single definition (with confirm)
+// now lives in the inventory/COGS module further down.
 
 function submitSalesEntry(date) {
   var total = parseFloat((document.getElementById('sl-total')||{}).value || 0);
@@ -11146,8 +11114,7 @@ function loadAll() {
 
     var wst = safeGet(LS.WASTE, []);
     if (Array.isArray(wst)) DB.wasteLog = wst;
-    var prch = safeGet(LS.PURCHASES, null);
-    if (Array.isArray(prch)) DB.purchaseLog = prch;
+    // FIX: purchases now load once, merged from both legacy keys — see below.
 
     var lbr = safeGet(LS.LABOR, []);
     if (Array.isArray(lbr)) DB.laborLog = lbr;
@@ -11216,8 +11183,25 @@ function loadAll() {
     var icRaw = safeGet(LS.INV_COUNTS||'kl_inv_counts_v1', []);
     if (Array.isArray(icRaw)) DB.inventoryCounts = icRaw;
 
-    var plRaw = safeGet(LS.PURCHASE_LOG||'kl_purchase_log_v1', []);
-    if (Array.isArray(plRaw)) DB.purchaseLog = plRaw;
+    // FIX: merged purchase load. Previously two keys (kl_purchases_v1 /
+    // kl_purchase_log_v1) fought each other: Quick Numbers entries vanished on
+    // reload and modal entries summed $0 in weekly food cost. Merge both keys,
+    // normalize amount/total onto every entry, migrate to the unified key.
+    var plNew = safeGet(LS.PURCHASE_LOG, []);
+    var plOld = safeGet(LS.PURCHASES, []);
+    if (!Array.isArray(plNew)) plNew = [];
+    if (!Array.isArray(plOld)) plOld = [];
+    var plSeen = {};
+    DB.purchaseLog = plNew.concat(plOld).filter(function(p){
+      if (!p || !p.purchase_id || plSeen[p.purchase_id]) return false;
+      plSeen[p.purchase_id] = true; return true;
+    }).map(function(p){
+      var plAmt = parseFloat(p.amount != null ? p.amount : p.total) || 0;
+      p.amount = plAmt; p.total = plAmt; return p;
+    });
+    if (plOld.length) {
+      try { savePurchaseLog(); localStorage.removeItem(LS.PURCHASES); } catch(e) {}
+    }
 
     var exRaw = safeGet(LS.EXPENSE_LOG, []);
     if (Array.isArray(exRaw)) DB.expenseLog = exRaw;
@@ -13459,7 +13443,7 @@ var recipeStatusFilter = 'All';
 
 const NAV = {
   // ── SERVICE MODE: what a cook or manager sees during operations ──────
-  // 5 clean items. Labels are action-oriented, not system names.
+  // 6 items. Labels are action-oriented, not system names.
   service: [
     {id:'today',       ico:'◈', lbl:'Today'},
     {id:'prep',        ico:'✓', lbl:'Prep & Labels'},
@@ -13522,7 +13506,10 @@ function go(id) {
   }
   // Schedule + Labor Log live inside the Team & Schedule hub — route into the right tab
   if (id === 'schedule' || id === 'laborlog') { A.teamTab = id; id = 'team'; }
-  if(SVC.has(id))A.mode='service'; if(BLD.has(id))A.mode='build';
+  // FIX: pages in BOTH sets (e.g. inspector) keep the current mode instead of flipping to build
+  if(SVC.has(id)&&BLD.has(id)){/* shared page — stay in current mode */}
+  else if(SVC.has(id))A.mode='service';
+  else if(BLD.has(id))A.mode='build';
   A.page=id; syncUI(); draw();
 }
 function goBuilder(recipe, field, defaultType) {
@@ -13569,7 +13556,7 @@ function drawSB() {
   }
 
   var html = '<div class="sb-strip"><span class="sb-badge ' + (isService ? 'svc' : 'bld') + '">'
-    + (isService ? 'SERVICE' : 'BUILD')
+    + (isService ? 'RUN' : 'BUILD')
     + '</span></div>'
     + phaseBar;
 
@@ -15917,26 +15904,7 @@ function prep() {
   // \u2500\u2500 PAR tip banner (if dismissible helper exists) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   var parTipHtml = (typeof renderPrepParTipBanner === 'function') ? renderPrepParTipBanner() : '';
 
-  // \u2500\u2500 LOW PREP banner — items below 30% of PAR \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-  var lowPrepHtml = '';
-  var lowItems = (typeof getLowPrepItems === 'function') ? getLowPrepItems() : [];
-  if (lowItems.length) {
-    lowPrepHtml = '<div class="no-print" style="background:rgba(239,68,68,.07);'
-      +'border:1px solid rgba(239,68,68,.25);border-left:3px solid var(--danger);'
-      +'border-radius:var(--r);padding:10px 14px;margin-bottom:12px;max-width:960px">'
-      +'<div style="font-size:10px;color:var(--danger);font-family:\'JetBrains Mono\',monospace;'
-        +'letter-spacing:1px;margin-bottom:6px;font-weight:700">'
-        +'\u26A0 LOW PREP \u2014 ' + lowItems.length + ' item' + (lowItems.length>1?'s':'') + ' need replenishment'
-      +'</div>'
-      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
-      + lowItems.map(function(p){
-          return '<span style="font-size:11px;padding:2px 8px;border-radius:4px;'
-            +'background:rgba(239,68,68,.12);color:var(--danger)">'
-            + p.recipe.name + ' \u2014 ' + p.on_hand + '/' + p.par + ' (' + p.pct + '%)</span>';
-        }).join('')
-      +'</div>'
-    +'</div>';
-  }
+  // FIX: dead v1 LOW PREP banner removed — renderLowPrepBanner_v2() below is the live one.
 
   // \u2500\u2500 Action bar \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   var actionBar = '<div class="action-bar no-print" style="flex-wrap:wrap;gap:8px;margin-bottom:16px">'
@@ -15946,8 +15914,8 @@ function prep() {
         var _sent = DB.restaurantProfile.prep_sent || {};
         var _today = new Date().toISOString().slice(0,10);
         return (_sent.date === _today)
-          ? '<span style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font-size:12px;color:var(--teal);border:1px solid var(--teal);border-radius:var(--r)">\u2713 Sent to kitchen ' + (_sent.time||'') + '</span>'
-          : '<button class="btn btn-primary btn-sm" onclick="sendPrepToKitchen()">\u2191 Send to Kitchen</button>';
+          ? '<span style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font-size:12px;color:var(--teal);border:1px solid var(--teal);border-radius:var(--r)">\u2713 Posted ' + (_sent.time||'') + '</span>'
+          : '<button class="btn btn-primary btn-sm" onclick="sendPrepToKitchen()">\u2713 Post Prep List</button>';
       })()
     +'<button class="btn btn-ghost btn-sm" onclick="showCookView()">\u229E Station View</button>'
     + (function(){
@@ -15978,6 +15946,10 @@ function prep() {
       var r        = DB.recipes.find(function(x){ return x.recipe_id === it.recipe_id; }) || {};
       var done     = !!st.done;
       var shelfDays = it.shelf_life_days || it.shelf_life || 0;
+
+      // FIX: manual fallback — book + page so a cook can grab the printed book
+      var bp = it.page_info || (typeof getRecipePage === 'function' ? getRecipePage(it.recipe_id) : null);
+      var bookLabel = bp ? ' \u00b7 ' + bp.book + ' p.' + bp.page : '';
 
       // USE BY date
       var useByLabel = '';
@@ -16075,10 +16047,10 @@ function prep() {
         +'</td>'
         // Recipe name + meta
         +'<td style="padding:8px 10px">'
-          +'<div style="font-weight:600;font-size:13px;cursor:pointer" onclick="showRecipeModal(\''+it.recipe_id+'\')">'+it.name+'</div>'
+          +'<div style="font-weight:600;font-size:13px;cursor:pointer" onclick="showRecipeModal(\''+it.recipe_id+'\')">'+esc(it.name)+'</div>'
           +'<div style="font-size:10px;color:var(--text3);font-family:\'JetBrains Mono\',monospace">'+it.type+useByLabel
             +(function(){ var _em = prepItemEstMinutes(it); return _em > 0 ? ' \u00B7 <span style="color:var(--orange)" title="Estimated time for this batch count \u2014 from the recipe\'s prep + cook times">~' + fmtMins(_em) + '</span>' : ''; })()
-          +'</div>'
+          +bookLabel+'</div>'
         +'</td>'
         +parCell
         +onHandCell
@@ -16158,7 +16130,7 @@ function sendPrepToKitchen() {
     sent_iso: now.toISOString()
   };
   try { saveProfile(); } catch(e) {}
-  successToast('\u{1F4E4} Prep list sent \u2014 cooks check items off as they finish through the day');
+  successToast('Prep list posted \u2014 cooks check items off on this device as they finish');
   drawMain();
 }
 
@@ -16274,7 +16246,7 @@ function printPrepSheet() {
       var done = !!st.done;
       return '<tr class="klps-row' + (done?' klps-done':'') + '">'
         + '<td class="klps-check">' + (done?'&#x2713;':'&#x25A1;') + '</td>'
-        + '<td class="klps-name">' + it.name + (it.cooling_required?'<span class="klps-tcs"> TCS</span>':'') + '</td>'
+        + '<td class="klps-name">' + esc(it.name) + (it.cooling_required?'<span class="klps-tcs"> TCS</span>':'') + '</td>'
         + '<td class="klps-type">' + (it.type||'') + '</td>'
         + '<td class="klps-shelf">' + (it.shelf_life||'MTO') + '</td>'
         + '<td class="klps-num">' + oh + '</td>'
@@ -21566,7 +21538,7 @@ function setup() {
   // ── TOTAL STEPS updated: 0=welcome, 1=type, 2=stations, 3=substations,
   //    4=storage, 5=books, 6=ingredients, 7=targets, 8=costs, 9=compliance
   //    10=promise/done  (but we show 8 user-visible steps)
-  const TOTAL_STEPS = 9;
+  const TOTAL_STEPS = 8; // FIX: must equal WIZ_STEPS.length — was 9, so the bar capped at 89%
 
   // User-visible step count (skips sub-steps)
   const WIZ_STEPS = [
@@ -30677,7 +30649,7 @@ function savePurchaseEntry() {
   if (!DB.purchaseLog) DB.purchaseLog = [];
   DB.purchaseLog.push({
     purchase_id: 'pur-' + Date.now(),
-    date: date, vendor: vendor, total: total, notes: notes,
+    date: date, vendor: vendor, total: total, amount: total, notes: notes, // FIX: both fields set
   });
   savePurchaseLog();
   document.getElementById('_purchase_modal').remove();
